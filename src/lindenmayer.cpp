@@ -5,6 +5,7 @@
 #include "lindenmayer.h"
 #include <cstring>
 #include "stdio.h"
+#include "logging.hpp"
 
 void LSystem::SetSeed(char* NewSeed)
 {
@@ -14,6 +15,7 @@ void LSystem::SetSeed(char* NewSeed)
 void LSystem::SetAxiom(char* NewAxiom)
 {
     Axiom = strdup(NewAxiom);
+    LogDebug("Axiom=%s", NewAxiom);
 }
 
 void LSystem::AddRule(char c, const char *R)
@@ -56,7 +58,7 @@ void LSystem::Rewrite(int Iterations)
     }
 }
 
-float** Turtle::DrawSystem(LSystem &System)
+ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
 {
     char* SourceString = System.GeneratedString != nullptr ? System.GeneratedString : System.Axiom;
     if(SourceString == nullptr)
@@ -66,13 +68,43 @@ float** Turtle::DrawSystem(LSystem &System)
     size_t StrLength = strlen(SourceString);
 
     constexpr unsigned int MaxTriangles = 1024;
-    float TempVertData[2][MaxTriangles*3] = {0};
+    ColoredTriangleList* Triangles = new ColoredTriangleList(1024);
 
-    for(int i = 0; i < MaxTriangles*3; i+=3)
+    for(int i = 0; i < MaxTriangles; i++)
     {
-        fprintf(stdout, "v[%d]=(%f, %f, %f)\n", TempVertData[0][i+0], TempVertData[0][i+1], TempVertData[0][i+2]);
-        fprintf(stdout, "c[%d]=(%f, %f, %f)\n", TempVertData[1][i+0], TempVertData[1][i+1], TempVertData[1][i+2]);
+        ColoredTriangle& Triangle = Triangles->TriData[i];
+
+        glm::vec3 center;
+        center.x = (rand() % 1000) / 1000.0f;
+        center.y = (rand() % 1000) / 1000.0f;
+        center.z = (rand() % 1000) / 1000.0f;
+
+        center -= 0.5;
+        center *= 10.0f;
+
+        for(int v = 0; v < 3; v++)
+        {
+            glm::vec3& vertex = Triangles->TriData[i].VertexLocations[v];
+            glm::vec3& color = Triangles->TriData[i].VertexColors[v];
+
+            vertex.x = (rand() % 1000) / 1000.0;
+            vertex.y = (rand() % 1000) / 1000.0;
+            vertex.z = (rand() % 1000) / 1000.0;
+            vertex *= 1.0f;
+
+            vertex = center + vertex;
+
+            color.x = (rand() % 1000) / 1000.0;
+            color.y = (rand() % 1000) / 1000.0;
+            color.z = (rand() % 1000) / 1000.0;
+
+            LogDebug("\tvertex[%d]=(%2.2lf,%2.2lf,%2.2lf)\n", v, vertex.x, vertex.y, vertex.z );
+            LogDebug("\tcolor[%d]=(%2.2lf,%2.2lf,%2.2lf)\n", v, color.x, color.y, color.z );
+        }
     }
+
+    return Triangles;
+
 
     for(int i = 0; i < StrLength; i++)
     {
@@ -82,6 +114,8 @@ float** Turtle::DrawSystem(LSystem &System)
                 Location += (Direction * System.Distance);
             case 'f':
             case 'h':
+            default:
+                break;
         }
     }
 }

@@ -7,10 +7,15 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <cstring>
 
 struct LS_RewritingRule
 {
-    LS_RewritingRule(char c, const char* R);
+    LS_RewritingRule(char c, const char* R)
+    {
+        Character = c;
+        RString = strdup(R);
+    }
 
     char Character;
     char* RString;
@@ -40,10 +45,34 @@ public:
     float Angle;
 };
 
+struct ColoredTriangle
+{
+    glm::vec3 VertexLocations[3];
+    glm::vec3 VertexColors[3];
+};
+
+struct ColoredTriangleList
+{
+    ColoredTriangleList(int MaxTris)
+    {
+        NumTriangles = MaxTris;
+        TriData = (ColoredTriangle*) malloc( MaxTris * sizeof(ColoredTriangle));
+    }
+    ~ColoredTriangleList()
+    {
+        if(TriData != nullptr)
+        {
+            free(TriData);
+        }
+    }
+    int NumTriangles;
+    ColoredTriangle* TriData;
+};
+
 class Turtle
 {
 public:
-    float** DrawSystem(LSystem& System);
+    ColoredTriangleList* DrawSystem(LSystem& System);
 
     glm::vec3 Location;
     glm::vec3 Direction;
