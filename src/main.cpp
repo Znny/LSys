@@ -45,8 +45,8 @@ void Cleanup();
 //main window for the sim
 GLFWwindow* MainWindow = nullptr;
 
-constexpr int DefaultWidth = 1920;
-constexpr int DefaultHeight = 1080;
+constexpr int DefaultWidth = 1440;
+constexpr int DefaultHeight = 1440;
 
 static int Width = DefaultWidth;
 static int Height = DefaultHeight;
@@ -67,6 +67,7 @@ glm::mat4 ViewProjectionMatrix = glm::mat4();
 double ViewDistance = 10.0;
 
 glm::vec3 EyeLocation;
+glm::vec3 ModelCenter;
 glm::vec3 UpDirection(0.0, 1.0, 0.0);
 
 //rotation speed in radians/s
@@ -102,9 +103,15 @@ static float TriangleColors[] =
   0.0f, 0.0f, 1.0f
 };
 
+static int Iterations = 0;
+
 LSystem TestSystem;
 Turtle TestTurtle;
 ColoredTriangleList* TriangleList = nullptr;
+int MaxTriangles = 0;
+
+constexpr double FoV_y_degrees = 50;
+constexpr double FoV_y = glm::radians(FoV_y_degrees);
 
 //default vao, vbo, etc.
 GLuint VertexArrayObject;
@@ -125,8 +132,8 @@ ShaderObject* PassthroughFragmentShader;
 
 int main(int argc, char** argv, char** envp)
 {
-
     LogDebug("Hello!\n");
+
     //initialize the sim
     if(Init(argc, argv, envp))
     {
@@ -145,6 +152,11 @@ int main(int argc, char** argv, char** envp)
 bool Init(int argc, char** argv, char** envp)
 {
     fprintf(stdout, "initializing...\n");
+
+    if(argc == 2)
+    {
+        Iterations = atoi(argv[1]);
+    }
 
     if(!InitGraphics())
     {
@@ -267,7 +279,6 @@ bool InitGraphics()
     glEnableVertexAttribArray(1);
 
     //setup projection matrix
-    constexpr double FoV_y = glm::radians(50.0);
     const double AspectRatio = Width / Height;
     constexpr double zNear = 0.1;
     constexpr double zFar = 1000.0;
@@ -286,10 +297,13 @@ bool InitGraphics()
 
 bool InitLSystems()
 {
-    TestSystem.Angle = glm::radians(90.0);
-    TestSystem.Distance = 1.0;
-    char* NewAxiom = strdup("f+f+f+f");
+    //set system angle and distance
+    TestSystem.Angle = glm::radians(60.0f);
+    TestSystem.Distance = 0.2;
+
+    char* NewAxiom = strdup("f--f--f");
     TestSystem.SetAxiom(NewAxiom);
+    TestSystem.Rewrite(Iterations);
 
     TriangleList = TestTurtle.DrawSystem(TestSystem);
 
@@ -298,27 +312,55 @@ bool InitLSystems()
         return false;
     }
 
-    glm::vec3 VertLocations[1024*3];
-    glm::vec3 VertColors[1024*3];
+   // 1.175494351 E - 38	3.402823466 E + 38
+    constexpr float FLOAT_MIN = 1.175494351E-38;
+    constexpr float FLOAT_MAX = 3.402823466E+38;
+    glm::vec3 min = glm::vec3(FLOAT_MAX);
+    glm::vec3 max = glm::vec3(FLOAT_MIN);
+    glm::vec3 center = glm::vec3(0.0);
 
-    for(int i = 0; i < 1024; i++)
+    fprintf(stdout, "loading %d triangles\n", TriangleList->NumTriangles);
+    glm::vec3* VertLocations = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations));
+    glm::vec3* VertColors= (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors));
+    //glm::vec3* VertColors[1024*3];
+
+    for(int i = 0; i < TriangleList->NumTriangles; i++)
     {
         for(int j = 0; j < 3; j++)
         {
-            VertLocations[i * 3 + j] = TriangleList->TriData[i].VertexLocations[j];
-            VertColors[i * 3 + j] = TriangleList->TriData[i].VertexColors[j];
+            glm::vec3& vert = TriangleList->TriData[i].VertexLocations[j];
+            glm::vec3& color = TriangleList->TriData[i].VertexColors[j];
+
+            VertLocations[i * 3 + j] = vert;
+            VertColors[i * 3 + j] = color;
+
+            if(vert.x < min.x) min.x = vert.x;
+            if(vert.y < min.y) min.y = vert.y;
+            if(vert.z < min.z) min.z = vert.z;
+
+            if(vert.x > max.x) max.x = vert.x;
+            if(vert.y > max.y) max.y = vert.y;
+            if(vert.z > max.z) max.z = vert.z;
         }
     }
+    ModelCenter = (min + max) / 2.0f;
+
+    float Distance = glm::length(max.y-min.y);
+    ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
+    //ViewDistance = ViewDistances[Iterations];
+
+    fprintf(stdout, "viewdistance = %f\n", ViewDistance);
+
 
     //create vertex buffer for storing per-vertex data
     glGenBuffers(1, &ColoredVertexBufferObject_Positions);
     glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * sizeof(glm::vec3), (GLfloat*)VertLocations, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations), (GLfloat*)VertLocations, GL_STATIC_DRAW);
 
     glGenBuffers(1, &ColoredVertexBufferObject_Colors);
     glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * sizeof(glm::vec3), (GLfloat*)VertColors, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors), (GLfloat*)VertColors, GL_STATIC_DRAW);
 
     //create vertax array object for storing info about bound objects and what to render
     glGenVertexArrays(1, &ColoredVertexArrayObject);
@@ -366,8 +408,8 @@ void Run()
 
 void Tick(double dt)
 {
-    EyeLocation = glm::vec3(cos(ThisFrameTime) * ViewDistance, 0.0, sin(ThisFrameTime) * ViewDistance);
-    ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0, 0.5, 0.0), UpDirection);
+    EyeLocation = glm::vec3(cos(ThisFrameTime) * ViewDistance, 0.0, sin(ThisFrameTime) * ViewDistance) + ModelCenter;
+    ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
     ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
     //fprintf(stdout, "EyeLocation = (%f, %f, %f)\n", EyeLocation.x, EyeLocation.y, EyeLocation.z);
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE, (GLfloat*)&ViewProjectionMatrix);
@@ -381,9 +423,9 @@ void Render(double dt)
     //resolution
     //mouse info
 
-    const double Red = cos(ThisFrameTime);
-    const double Green = cos(ThisFrameTime);
-    const double Blue = cos(ThisFrameTime);
+    const double Red = 0.0f;
+    const double Green = 0.0f;
+    const double Blue = 0.0f;
 
     //set clear color
     glClearColor(Red, Green, Blue, 1.0);
@@ -399,7 +441,7 @@ void Render(double dt)
         //  glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindVertexArray(ColoredVertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 3*1024);
+        glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
 
     //swap front and back buffers
@@ -461,6 +503,17 @@ void KeyboardEventCallback(GLFWwindow *Window, int KeyCode, int ScanCode, int Ac
     else if(KeyCode == GLFW_KEY_R)
     {
         PassthroughShaderProgram->Reload();
+    }
+    else if(KeyCode == GLFW_KEY_RIGHT)
+    {
+        Iterations += 1;
+    }
+    else if(KeyCode == GLFW_KEY_LEFT)
+    {
+        if(Iterations > 0)
+        {
+            Iterations--;
+        }
     }
 }
 

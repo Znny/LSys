@@ -47,6 +47,14 @@ public:
 
 struct ColoredTriangle
 {
+    ColoredTriangle()
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            VertexLocations[i] = glm::vec3(0);
+            VertexColors[i] = glm::vec3(0);
+        }
+    }
     glm::vec3 VertexLocations[3];
     glm::vec3 VertexColors[3];
 };
@@ -55,9 +63,11 @@ struct ColoredTriangleList
 {
     ColoredTriangleList(int MaxTris)
     {
-        NumTriangles = MaxTris;
-        TriData = (ColoredTriangle*) malloc( MaxTris * sizeof(ColoredTriangle));
+        NumTriangles = 0;
+        MaxTriangles = MaxTris;
+        TriData = (ColoredTriangle*) malloc( MaxTriangles * sizeof(ColoredTriangle));
     }
+
     ~ColoredTriangleList()
     {
         if(TriData != nullptr)
@@ -65,17 +75,32 @@ struct ColoredTriangleList
             free(TriData);
         }
     }
+
+    void AddTriangle(ColoredTriangle& Triangle)
+    {
+        TriData[NumTriangles++] = Triangle;
+    }
     int NumTriangles;
+    int MaxTriangles;
     ColoredTriangle* TriData;
 };
 
 class Turtle
 {
 public:
+    Turtle()
+    : Location(glm::vec3(0)),
+    Forwards(glm::vec3(0.0, 1.0, 0.0)),
+    Right(glm::vec3(1.0, 0.0, 0.0))
+    {
+
+    }
+
     ColoredTriangleList* DrawSystem(LSystem& System);
 
     glm::vec3 Location;
-    glm::vec3 Direction;
+    glm::vec3 Forwards;
+    glm::vec3 Right;
 };
 
 
