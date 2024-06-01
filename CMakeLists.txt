@@ -17,7 +17,9 @@ include_directories(include/KHR)
 add_executable(GLBP
         src/glad.c
         src/main.cpp
-        src/ShaderObject.h)
+        include/ShaderObject.h
+        src/logging.cpp
+        src/lindenmayer.cpp)
 
 set(GLFW_LIB_DIR "${CMAKE_SOURCE_DIR}/lib/lib-mingw-w64")
 
