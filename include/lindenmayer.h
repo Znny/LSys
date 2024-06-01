@@ -25,6 +25,8 @@ class LSystem
 {
 
 public:
+    LSystem();
+
     void AddRule(char c, const char* R);
     void SetSeed(char* NewSeed);
     void SetAxiom(char* NewAxiom);
