@@ -4,65 +4,84 @@
   @version 1.0
 \*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-/*removal definitions*/
-#ifdef RM_ZLP_ALL
-	#define RM_ZLP_VERBOSE
-	#define RM_ZLP_WARNING
-	#define RM_ZLP_INFO
-	#define RM_ZLP_ERROR
-	#define RM_ZLP_CRITICAL
+// define REMOVE_ALL_LOGGING to remove all logging from source files
+#ifdef REMOVE_ALL_LOGGING
+#define REMOVE_CRITICAL_LOGGING
+#define REMOVE_ERROR_LOGGING
+#define REMOVE_WARNING_LOGGING
+#define REMOVE_INFO_LOGGING
+#define REMOVE_VERBOSE_LOGGING
 #endif
 
-/*VERBOSE*\--------------------------------------------------*/
-#ifndef RM_ZLP_VERBOSE
-	#define zlogv(fmt, ...) ZEN_LogFunc[ZLP_VERBOSE]( ZEN_LogFile[ZLP_VERBOSE], fmt, ##__VA_ARGS__)
-	#define zclogv(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_VERBOSE]( ZEN_LogFile[ZLP_VERBOSE], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+//todo: make fatal and critical logs exit the program or send a sigkill/sigint, something along those lines
+
+///Fatal logging////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef REMOVE_FATAL_LOGGING
+constexpr int iFatal = (int)ELogSeverity::Fatal;
+#define LogFatal(Format, ...) LoggingFunctions[iFatal]((LoggingFiles[iFatal], ELogSeverity::Fatal, Format, ##__VA_ARGS__)
+#define LogFatalConditional(chc, Format1, Format2, ...) LoggingFunctions[iFatal]( LoggingFiles[iFatal], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zlogv(fmt, ...) //
-	#define zclogv(chc, fmt1, fmt2, ...) //
+#define LogFatal(Format, ...) //
+#define LogFatalConditional(chc, Format1, Format2, ...) //
 #endif
 
-/*DEBUG*\----------------------------------------------------*/
-#ifndef RM_ZLP_DEBUG
-	#define zlogd(fmt, ...) ZEN_LogFunc[ZLP_DEBUG](ZEN_LogFile[ZLP_DEBUG], fmt, ##__VA_ARGS__)
-	#define zclogd(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_DEBUG]( ZEN_LogFile[ZLP_DEBUG], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+///Critical logging/////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef REMOVE_CRITICAL_LOGGING
+constexpr int iCritical = (int)ELogSeverity::Critical;
+#define LogCritical(Format, ...) LoggingFunctions[iCritical](LoggingFiles[iCritical], ELogSeverity::Critical, Format, ##__VA_ARGS__)
+#define LogCriticalConditional(chc, Format1, Format2, ...) LoggingFunctions[iCritical]( LoggingFiles[iCritical], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zlogd(fmt, ...) //
-	#define zclogd(chc, fmt1, fmt2, ...) //
+#define LogCritical(Format, ...) //
+#define LogCriticalConditional(chc, Format1, Format2, ...) //
 #endif
 
-/*INFO*\-----------------------------------------------------*/
-#ifndef RM_ZLP_INFO
-	#define zlogi(fmt, ...) ZEN_LogFunc[ZLP_INFO](ZEN_LogFile[ZLP_INFO], fmt, ##__VA_ARGS__)
-	#define zclogi(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_INFO]( ZEN_LogFile[ZLP_INFO], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+///Error logging////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef REMOVE_ERROR_LOGGING
+constexpr int iError = (int)ELogSeverity::Error;
+#define LogError(Format, ...) LoggingFunctions[iError](LoggingFiles[iError], ELogSeverity::Error, Format, ##__VA_ARGS__)
+#define LogErrorConditional(chc, Format1, Format2, ...) LoggingFunctions[iError]( LoggingFiles[iError], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zlogi(fmt, ...) //
-	#define zclogi(chc, fmt1, fmt2, ...) //
+#define LogError(Format, ...) //
+#define LogErrorConditional(chc, Format1, Format2, ...) //
 #endif
 
-/*WARNING*\--------------------------------------------------*/
-#ifndef RM_ZLP_WARNING
-	#define zlogw(fmt, ...) ZEN_LogFunc[ZLP_WARNING](ZEN_LogFile[ZLP_WARNING], fmt, ##__VA_ARGS__)
-	#define zclogw(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_WARNING]( ZEN_LogFile[ZLP_WARNING], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+///Warning logging//////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef REMOVE_WARNING_LOGGING
+constexpr int iWarning = (int)ELogSeverity::Warning;
+#define LogWarning(Format, ...) LoggingFunctions[iWarning](LoggingFiles[iWarning], ELogSeverity::Warning, Format, ##__VA_ARGS__)
+#define LogWarningConditional(chc, Format1, Format2, ...) LoggingFunctions[iWarning]( LoggingFiles[iWarning], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zlogw(fmt, ...) //
-	#define zclogw(chc, fmt1, fmt2, ...) //
+#define LogWarning(Format, ...) //
+#define LogWarningConditional(chc, Format1, Format2, ...) //
 #endif
 
-/*ERROR*\----------------------------------------------------*/
-#ifndef RM_ZLP_ERROR
-	#define zloge(fmt, ...) ZEN_LogFunc[ZLP_ERROR](ZEN_LogFile[ZLP_ERROR], fmt, ##__VA_ARGS__)
-	#define zcloge(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_ERROR]( ZEN_LogFile[ZLP_ERROR], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+///Info logging/////////////////////////////////////////////////////////////////////////////////////////////////////////
+constexpr int iInfo = (int)ELogSeverity::Info;
+#ifndef REMOVE_INFO_LOGGING
+#define LogInfo(Format, ...) LoggingFunctions[iInfo](LoggingFiles[iInfo], ELogSeverity::Info, Format, ##__VA_ARGS__)
+#define LogInfoConditional(chc, Format1, Format2, ...) LoggingFunctions[iInfo]( LoggingFiles[iInfo], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zloge(fmt, ...) //
-	#define zcloge(chc, fmt1, fmt2, ...) //
+#define LogInfo(Format, ...) //
+#define LogInfoConditional(chc, Format1, Format2, ...) //
 #endif
 
-/*CRITICAL*\--------------------------------------------------*/
-#ifndef RM_ZLP_CRITICAL
-	#define zlogc(fmt, ...) ZEN_LogFunc[ZLP_CRITICAL](ZEN_LogFile[ZLP_CRITICAL], fmt, ##__VA_ARGS__)
-	#define zclogc(chc, fmt1, fmt2, ...) ZEN_LogFunc[ZLP_CRITICAL]( ZEN_LogFile[ZLP_CRITICAL], (chc ? fmt1 : fmt2), ##__VA_ARGS__)
+///Verbose logging//////////////////////////////////////////////////////////////////////////////////////////////////////
+constexpr int iVerbose = (int)ELogSeverity::Verbose;
+#ifndef REMOVE_VERBOSE_LOGGING
+#define LogVerbose(Format, ...) LoggingFunctions[iVerbose]( LoggingFiles[iVerbose], ELogSeverity::Verbose, Format, ##__VA_ARGS__)
+#define LogVerboseConditional(chc, Format1, Format2, ...) LoggingFunctions[iVerbose]( LoggingFiles[iVerbose], (chc ? Format1 : Format2), ##__VA_ARGS__)
 #else
-	#define zlogc(fmt, ...) //
-	#define zclogc(chc, fmt1, fmt2, ...) //
+#define LogVerbose(Format, ...) //
+#define LogVerboseConditional(chc, Format1, Format2, ...) //
 #endif
+
+///Debug logging////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef REMOVE_DEBUG_LOGGING
+constexpr int iDebug = (int)ELogSeverity::Debug;
+#define LogDebug(Format, ...) LoggingFunctions[iDebug](LoggingFiles[iDebug], ELogSeverity::Debug, Format, ##__VA_ARGS__)
+#define LogDebugConditional(chc, Format1, Format2, ...) LoggingFunctions[iDebug]( LoggingFiles[iDebug], (chc ? Format1 : Format2), ##__VA_ARGS__)
+#else
+#define LogDebug(Format, ...) //
+#define LogDebugConditional(chc, Format1, Format2, ...) //
+#endif
+

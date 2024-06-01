@@ -5,11 +5,23 @@
 
 LoggingFunction_t LoggingFunctions[(int)ELogSeverity::Count]
 {
+    EnabledLoggingFunction,
+    EnabledLoggingFunction,
+    EnabledLoggingFunction,
+    EnabledLoggingFunction,
+    EnabledLoggingFunction,
+    EnabledLoggingFunction,
     EnabledLoggingFunction
 };
 
 FILE* LoggingFiles[(int)ELogSeverity::Count]
 {
+    stdout,
+    stdout,
+    stdout,
+    stdout,
+    stdout,
+    stdout,
     stdout
 };
 
@@ -52,7 +64,7 @@ void SetLoggingFunction(ELogSeverity Severity, LoggingFunction_t func)
 void SetLoggingVariables(ELogSeverity Severity, FILE* fp, LoggingFunction_t func)
 {
     SetLoggingFile(Severity, fp);
-    SetLoggingFunction((Severity, func);
+    SetLoggingFunction(Severity, func);
 }
 
 //enabled logging function,

@@ -7,40 +7,39 @@
 #include <cstring>
 #include <cstdarg>
 
-typedef enum ZEN_LOG_PRIORITY
+enum class ELogSeverity
 {
-	ZLP_VERBOSE=0,
-	ZLP_DEBUG,
-	ZLP_INFO,
-	ZLP_WARNING,
-	ZLP_ERROR,
-	ZLP_CRITICAL,
-	ZLP_CNT
-}ZL_PRIORITY;
+    Fatal = 0,
+    Critical,
+    Error,
+    Warning,
+    Info,
+    Verbose,
+    Debug,
+    Count
+};
 
 /*zen logging function type-def*/
-typedef void (*ZEN_LogFunction)(FILE* fp, const char* fmt, ...);
+typedef void (*LoggingFunction_t)(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
 /*Logging variables*/
-extern ZEN_LogFunction 	ZEN_LogFunc[ZLP_CNT];
-extern FILE* 		ZEN_LogFile[ZLP_CNT];
+extern LoggingFunction_t LoggingFunctions[(int)ELogSeverity::Count];
+extern FILE* LoggingFiles[(int)ELogSeverity::Count];
 
 /*Toggle logging*/
-extern void ZEN_EnableLogging (ZL_PRIORITY priori);
-extern void ZEN_DisableLogging(ZL_PRIORITY priori);
-extern void ZEN_ToggleLogging (ZL_PRIORITY priori);
-extern void ZEN_ConditionalLog(bool cond, ZL_PRIORITY priori, const char* fmt1, const char* fmt2, ...);
-
+extern void EnableLogging (ELogSeverity Severity);
+extern void DisableLogging(ELogSeverity Severity);
+extern void ToggleLogging (ELogSeverity Severity);
+extern void LogConditional(bool Condition, ELogSeverity Severity, const char* TrueFormat, const char* FalseFormat, ...);
 
 /*Set Logging variables*/
-extern void ZEN_SetLogFile(ZL_PRIORITY priori, FILE* fp);
-extern void ZEN_SetLogFunc(ZL_PRIORITY priori, ZEN_LogFunction func);
-extern void ZEN_SetLogVars(ZL_PRIORITY priori, FILE* fp, ZEN_LogFunction func);
-
+extern void SetLoggingFile(ELogSeverity Severity, FILE* fp);
+extern void SetLoggingFunction(ELogSeverity Severity, LoggingFunction_t func);
+extern void SetLoggingVariables(ELogSeverity Severity, FILE* fp, LoggingFunction_t func);
 
 /*Default logging functions*/
-extern void ZLF_Enabled(FILE* fp, const char* fmt, ...);
-extern void ZLF_Disabled(FILE* fp, const char* fmt, ...);
+extern void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
+extern void DisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
 /*=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=*/
 //#define RM_ZLP_VERBOSE
