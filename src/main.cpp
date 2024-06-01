@@ -15,14 +15,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "ShaderProgram.h"
+#include "lindenmayer.h"
 //#include "matrix_clip_space.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "logging.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Init(int argc, char** argv, char** envp);
 bool InitGraphics();
 bool InitInput();
+bool InitLSystems();
 
 void Run();
 void UpdateTiming(GLFWwindow* window);
@@ -50,13 +54,13 @@ static int Height = DefaultHeight;
 //camera
 
 //projection matrix, representing how objects in space are projected onto the screen
-glm::mat4x4 ProjectionMatrix;
+glm::mat4 ProjectionMatrix = glm::mat4();
 
 //view matrix, representing the viewers transform in space
-glm::mat4x4 ViewMatrix;
+glm::mat4 ViewMatrix = glm::mat4();
 
 //vp matrix, needs to be updated when the projection matrix or view matrix changes
-glm::mat4x4 ViewProjectionMatrix;
+glm::mat4 ViewProjectionMatrix = glm::mat4();
 
 
 //view distance from the center
@@ -98,24 +102,31 @@ static float TriangleColors[] =
   0.0f, 0.0f, 1.0f
 };
 
-//vertex buffer object
+LSystem TestSystem;
+Turtle TestTurtle;
+ColoredTriangleList* TriangleList = nullptr;
+
+//default vao, vbo, etc.
+GLuint VertexArrayObject;
 GLuint VertexBufferObject_Positions;
 GLuint VertexBufferObject_Colors;
 
-
-//vertex array object
-GLuint VertexArrayObject;
+//colored triangle vao/vbo, etc.
+GLuint ColoredVertexArrayObject;
+GLuint ColoredVertexBufferObject_Positions;
+GLuint ColoredVertexBufferObject_Colors;
 
 //shader objects
 ShaderProgram* PassthroughShaderProgram;
 ShaderObject* PassthroughVertexShader;
 ShaderObject* PassthroughFragmentShader;
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv, char** envp)
 {
+
+    LogDebug("Hello!\n");
     //initialize the sim
     if(Init(argc, argv, envp))
     {
@@ -128,6 +139,7 @@ int main(int argc, char** argv, char** envp)
 
     return 0;
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// initialization functions
 bool Init(int argc, char** argv, char** envp)
@@ -227,6 +239,9 @@ bool InitGraphics()
         TriangleVerts[i] *= 5.0;
     }
 
+    InitLSystems();
+
+    /*
     //create vertex buffer for storing per-vertex data
     glGenBuffers(1, &VertexBufferObject_Positions);
     glBindBuffer(GL_ARRAY_BUFFER, VertexBufferObject_Positions);
@@ -247,7 +262,7 @@ bool InitGraphics()
     //specify color layout
     glBindBuffer(GL_ARRAY_BUFFER, VertexBufferObject_Colors);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
+    */
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
@@ -266,6 +281,56 @@ bool InitGraphics()
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE, (GLfloat*)&ViewProjectionMatrix);
 
 
+    return true;
+}
+
+bool InitLSystems()
+{
+    TestSystem.Angle = glm::radians(90.0);
+    TestSystem.Distance = 1.0;
+    char* NewAxiom = strdup("f+f+f+f");
+    TestSystem.SetAxiom(NewAxiom);
+
+    TriangleList = TestTurtle.DrawSystem(TestSystem);
+
+    if(TriangleList == nullptr)
+    {
+        return false;
+    }
+
+    glm::vec3 VertLocations[1024*3];
+    glm::vec3 VertColors[1024*3];
+
+    for(int i = 0; i < 1024; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            VertLocations[i * 3 + j] = TriangleList->TriData[i].VertexLocations[j];
+            VertColors[i * 3 + j] = TriangleList->TriData[i].VertexColors[j];
+        }
+    }
+
+    //create vertex buffer for storing per-vertex data
+    glGenBuffers(1, &ColoredVertexBufferObject_Positions);
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
+    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * sizeof(glm::vec3), (GLfloat*)VertLocations, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ColoredVertexBufferObject_Colors);
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * sizeof(glm::vec3), (GLfloat*)VertColors, GL_STATIC_DRAW);
+
+    //create vertax array object for storing info about bound objects and what to render
+    glGenVertexArrays(1, &ColoredVertexArrayObject);
+    glBindVertexArray(ColoredVertexArrayObject);
+
+    //specify vertex attribute 0 and specify format
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    //specify color layout
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     return true;
 }
@@ -304,7 +369,7 @@ void Tick(double dt)
     EyeLocation = glm::vec3(cos(ThisFrameTime) * ViewDistance, 0.0, sin(ThisFrameTime) * ViewDistance);
     ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0, 0.5, 0.0), UpDirection);
     ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
-    fprintf(stdout, "EyeLocation = (%f, %f, %f)\n", EyeLocation.x, EyeLocation.y, EyeLocation.z);
+    //fprintf(stdout, "EyeLocation = (%f, %f, %f)\n", EyeLocation.x, EyeLocation.y, EyeLocation.z);
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE, (GLfloat*)&ViewProjectionMatrix);
 }
 
@@ -330,8 +395,11 @@ void Render(double dt)
     {
         //render here
         glUseProgram(PassthroughShaderProgram->ProgramID);
-        glBindVertexArray(VertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //  glBindVertexArray(VertexArrayObject);
+        //  glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glBindVertexArray(ColoredVertexArrayObject);
+        glDrawArrays(GL_TRIANGLES, 0, 3*1024);
     }
 
     //swap front and back buffers
