@@ -16,7 +16,7 @@ void LSystem::SetSeed(char* NewSeed)
 void LSystem::SetAxiom(char* NewAxiom)
 {
     Axiom = strdup(NewAxiom);
-    LogDebug("Axiom=%s", NewAxiom);
+    //LogDebug("Axiom=%s", NewAxiom);
 }
 
 void LSystem::AddRule(char c, const char *R)
@@ -81,6 +81,14 @@ void LSystem::Rewrite(int Iterations)
             c = 0;
         }
     }
+}
+
+LSystem::LSystem()
+{
+    char* NewAxiom = strdup("f--f--f");
+    SetAxiom(NewAxiom);
+    Angle = glm::radians(60.0f);
+    Distance = 0.2;
 }
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
