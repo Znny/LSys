@@ -130,12 +130,26 @@ ShaderObject* PassthroughFragmentShader;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char** argv, char** envp)
+void Usage()
 {
-    LogDebug("Hello!\n");
+    LogInfo("usage: lsys [OPTIONS]\n");
+    LogInfo("OPTIONS:\n");
+    LogInfo("\t-h, --help           Display this help string and exit\n");
+    LogInfo("\n");
+    LogInfo("\t-x, --axiom          Specify initial string to generate from\n");
+    LogInfo("\t-i, --iterations     Specify number of rewriting iterations to perform\n");
+    LogInfo("\t          [NOTE] this grows exponentially\n");
+    LogInfo("\t-a, --angle          Specify turtle turn angle\n");
+    LogInfo("\t-d, --distance       Specify turtle move distance\n");
+    LogInfo("\t-r, --rewritefile    Specify a file to load rewriting rules from\n");
+    LogInfo("\t-rs, --resolution    Specify initial window resolution, WidthxHeight\n");
+    LogInfo("\t\n");
+}
 
+int main(int argc, char** argv)
+{
     //initialize the sim
-    if(Init(argc, argv, envp))
+    if(Init(argc, argv, nullptr))
     {
         //run the sim
         Run();
@@ -147,16 +161,64 @@ int main(int argc, char** argv, char** envp)
     return 0;
 }
 
+void ProcessArguments(int argc, char** argv)
+{
+    for(int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+        {
+            Usage();
+            exit(EXIT_SUCCESS);
+        }
+        else if (strcmp(argv[i], "-x") == 0 || strcmp(argv[i], "--axiom") == 0)
+        {
+            if((i + 1) < argc)
+            {
+                TestSystem.SetAxiom(argv[i+1]);
+                i++;
+            }
+        }
+        else if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--iterations") == 0)
+        {
+            if((i + 1) < argc)
+            {
+                Iterations = atoi(argv[i+1]);
+                i++;
+            }
+        }
+        else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--angle") == 0)
+        {
+            if((i + 1) < argc)
+            {
+                TestSystem.Angle = glm::radians(atof(argv[i + 1]));
+            }
+        }
+        else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--distance") == 0)
+        {
+            if((i + 1) < argc)
+            {
+                TestSystem.Distance = atof(argv[i + 1]);
+            }
+        }
+        else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--rewritefile") == 0)
+        {
+
+        }
+        else if (strcmp(argv[i], "-rs") == 0 || strcmp(argv[i], "--resolution") == 0)
+        {
+
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// initialization functions
 bool Init(int argc, char** argv, char** envp)
 {
-    fprintf(stdout, "initializing...\n");
+    //process arguments to setup
+    ProcessArguments(argc, argv);
 
-    if(argc == 2)
-    {
-        Iterations = atoi(argv[1]);
-    }
+    fprintf(stdout, "initializing...\n");
 
     if(!InitGraphics())
     {
@@ -298,13 +360,7 @@ bool InitGraphics()
 bool InitLSystems()
 {
     //set system angle and distance
-    TestSystem.Angle = glm::radians(60.0f);
-    TestSystem.Distance = 0.2;
-
-    char* NewAxiom = strdup("f--f--f");
-    TestSystem.SetAxiom(NewAxiom);
     TestSystem.Rewrite(Iterations);
-
     TriangleList = TestTurtle.DrawSystem(TestSystem);
 
     if(TriangleList == nullptr)
