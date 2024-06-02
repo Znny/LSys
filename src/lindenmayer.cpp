@@ -21,10 +21,13 @@ void LSystem::SetAxiom(char* NewAxiom)
 
 void LSystem::AddRule(char c, const char *R)
 {
-    RewritingRules.push_back(LS_RewritingRule(c, R));
+    LS_RewritingRule& Rule = RewritingRules[(int)c];
+    Rule.Character = c;
+    Rule.RString = strdup(R);
+    LogDebug("Rule Added > %c:%s\n", Rule.Character, Rule.RString);
 }
 
-void LSystem::Rewrite(int Iterations)
+void LSystem::Rewrite()
 {
     if(Axiom == nullptr)
     {
@@ -54,6 +57,23 @@ void LSystem::Rewrite(int Iterations)
         int NumGeneratedCharacters = 0;
         for(int c = 0; c < StrLength; c++)
         {
+            char& Character = SourceString[c];
+            if(Character < 32)
+            {
+                continue;
+            }
+            LS_RewritingRule& Rule = RewritingRules[(int)Character];
+            if(Rule.Character == Character && Rule.RString != nullptr)
+            {
+                fprintf(stdout, "using rule: %c:%s\n", Rule.Character, Rule.RString);
+                strcat(WorkingBuffer, Rule.RString);
+                NumGeneratedCharacters += strlen(Rule.RString);
+            }
+            else
+            {
+                WorkingBuffer[NumGeneratedCharacters++] = SourceString[c];
+            }
+            /*
             switch(SourceString[c])
             {
                 case 'f':
@@ -64,6 +84,7 @@ void LSystem::Rewrite(int Iterations)
                     WorkingBuffer[NumGeneratedCharacters++] = SourceString[c];
                 break;
             }
+             */
         }
 
         //if the previously generated string is not null, free it
@@ -85,10 +106,54 @@ void LSystem::Rewrite(int Iterations)
 
 LSystem::LSystem()
 {
-    char* NewAxiom = strdup("f--f--f");
+    char* NewAxiom = strdup("F--F--F");
     SetAxiom(NewAxiom);
     Angle = glm::radians(60.0f);
     Distance = 0.2;
+}
+
+void LSystem::LoadFromFile(const char *Filename)
+{
+    if(Filename == nullptr)
+    {
+        return;
+    }
+
+    char line[1024];
+    FILE* fp = fopen(Filename, "r");
+
+    //Checks if file is empty
+    if( fp == NULL )
+    {
+        return;
+    }
+
+    while( fgets(line,1024,fp) )
+    {
+        char* axiom = strstr(line, "x:");
+        char* angle = strstr(line, "a:");
+        char* iterations = strstr(line, "i:");
+        if(axiom != nullptr)
+        {
+            SetAxiom(axiom+2);
+        }
+        else if (angle != nullptr)
+        {
+            Angle = glm::radians(atof(line+2));
+        }
+        else if (iterations != nullptr)
+        {
+            Iterations = atoi(line + 2);
+        }
+        else if(line[0] > 32 && line[1]==':')
+        {
+            AddRule(line[0], line+2);
+            LogDebug("char:%c \trule:%s\n", line[0], line+2);
+        }
+        printf("%s\n",line);
+    }
+
+    fclose(fp);
 }
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
@@ -148,8 +213,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
         ColoredTriangle Triangle;
         switch(SourceString[i])
         {
-            case 'f':
-            case 'h':
+            case 'F':
             {
                 glm::vec3 StartLocation = Location;
                 glm::vec3 EndLocation = Location + Forwards * System.Distance;
@@ -169,7 +233,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
                 Triangle.VertexLocations[2] = EndLocation - HalfWidth;
                 Triangles->AddTriangle(Triangle);
             }
-            case 'g':
+            case 'f':
                 Location += (Forwards * System.Distance);
                 break;
             case '+':

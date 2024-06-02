@@ -11,6 +11,11 @@
 
 struct LS_RewritingRule
 {
+    LS_RewritingRule(): LS_RewritingRule (' ', "")
+    {
+
+    }
+
     LS_RewritingRule(char c, const char* R)
     {
         Character = c;
@@ -27,10 +32,13 @@ class LSystem
 public:
     LSystem();
 
+    void LoadFromFile(const char* Filename);
+
     void AddRule(char c, const char* R);
     void SetSeed(char* NewSeed);
     void SetAxiom(char* NewAxiom);
-    void Rewrite(int Iterations);
+    void Rewrite();
+    void SetIterations(int iter);
 
     //seed for PRNG
     char* Seed;
@@ -41,10 +49,11 @@ public:
     char* GeneratedString;
 
     //rewriting rules which effect the axiom
-    std::vector<LS_RewritingRule> RewritingRules;
+    LS_RewritingRule RewritingRules[128];
 
     float Distance;
     float Angle;
+    int Iterations;
 };
 
 struct ColoredTriangle

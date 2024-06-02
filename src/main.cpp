@@ -103,7 +103,6 @@ static float TriangleColors[] =
   0.0f, 0.0f, 1.0f
 };
 
-static int Iterations = 0;
 
 LSystem TestSystem;
 Turtle TestTurtle;
@@ -141,7 +140,7 @@ void Usage()
     LogInfo("\t          [NOTE] this grows exponentially\n");
     LogInfo("\t-a, --angle          Specify turtle turn angle\n");
     LogInfo("\t-d, --distance       Specify turtle move distance\n");
-    LogInfo("\t-r, --rewritefile    Specify a file to load rewriting rules from\n");
+    LogInfo("\t-L, --load           Specify a file to load an lsystem from\n");
     LogInfo("\t-rs, --resolution    Specify initial window resolution, WidthxHeight\n");
     LogInfo("\t\n");
 }
@@ -182,7 +181,7 @@ void ProcessArguments(int argc, char** argv)
         {
             if((i + 1) < argc)
             {
-                Iterations = atoi(argv[i+1]);
+                TestSystem.Iterations = atoi(argv[i+1]);
                 i++;
             }
         }
@@ -200,9 +199,12 @@ void ProcessArguments(int argc, char** argv)
                 TestSystem.Distance = atof(argv[i + 1]);
             }
         }
-        else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--rewritefile") == 0)
+        else if (strcmp(argv[i], "-L") == 0 || strcmp(argv[i], "--load") == 0)
         {
-
+            if((i+1) < argc)
+            {
+                TestSystem.LoadFromFile(argv[i+1]);
+            }
         }
         else if (strcmp(argv[i], "-rs") == 0 || strcmp(argv[i], "--resolution") == 0)
         {
@@ -360,7 +362,7 @@ bool InitGraphics()
 bool InitLSystems()
 {
     //set system angle and distance
-    TestSystem.Rewrite(Iterations);
+    TestSystem.Rewrite();
     TriangleList = TestTurtle.DrawSystem(TestSystem);
 
     if(TriangleList == nullptr)
@@ -562,14 +564,10 @@ void KeyboardEventCallback(GLFWwindow *Window, int KeyCode, int ScanCode, int Ac
     }
     else if(KeyCode == GLFW_KEY_RIGHT)
     {
-        Iterations += 1;
+        //Iterations += 1;
     }
     else if(KeyCode == GLFW_KEY_LEFT)
     {
-        if(Iterations > 0)
-        {
-            Iterations--;
-        }
     }
 }
 
