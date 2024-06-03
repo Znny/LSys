@@ -3,19 +3,19 @@
 //
 
 #include "ShaderProgram.h"
+#include "logging.hpp"
 #include <cstring>
-#include <cstdlib>
 #include <stdio.h>
 
 ShaderProgram::ShaderProgram(const char* name)
 {
     if(name != nullptr)
     {
-        Name = strndup(name, 1024);
+        Name = strdup(name);
     }
     else
     {
-        Name = strndup("unspecified", 1024);
+        Name = strdup("unspecified");
     }
 
     ProgramID = glCreateProgram();
@@ -51,8 +51,8 @@ bool ShaderProgram::Link()
         char info_log[1024];
         glGetProgramInfoLog(ProgramID, info_log_length, &actualSize, info_log);
 
-        fprintf(stdout, "error:\n");
-        fprintf(stderr, "%s\n", info_log);
+        LogError("error:\n");
+        LogError("%s\n", info_log);
 
         return false;
     }
