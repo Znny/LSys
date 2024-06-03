@@ -147,6 +147,9 @@ void Usage()
 
 int main(int argc, char** argv)
 {
+    //this is required to print out properly on windows
+    setbuf(stdout, 0);
+
     //initialize the sim
     if(Init(argc, argv, nullptr))
     {
