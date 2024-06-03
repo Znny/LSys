@@ -40,7 +40,7 @@ void LSystem::Rewrite()
         return;
     }
 
-    fprintf(stdout, "rewriting: %d iteration\n", Iterations);
+    LogInfo("rewriting: %d iteration\n", Iterations);
 
     const int MaxCharacters = 1000000;
     char WorkingBuffer[MaxCharacters] = {0};
@@ -65,7 +65,7 @@ void LSystem::Rewrite()
             LS_RewritingRule& Rule = RewritingRules[(int)Character];
             if(Rule.Character == Character && Rule.RString != nullptr)
             {
-                fprintf(stdout, "using rule: %c:%s\n", Rule.Character, Rule.RString);
+                //LogVerbose("using rule: %c:%s\n", Rule.Character, Rule.RString);
                 strcat(WorkingBuffer, Rule.RString);
                 NumGeneratedCharacters += strlen(Rule.RString);
             }
@@ -148,9 +148,9 @@ void LSystem::LoadFromFile(const char *Filename)
         else if(line[0] > 32 && line[1]==':')
         {
             AddRule(line[0], line+2);
-            LogDebug("char:%c \trule:%s\n", line[0], line+2);
+            //LogDebug("char:%c \trule:%s\n", line[0], line+2);
         }
-        printf("%s\n",line);
+        //printf("%s\n",line);
     }
 
     fclose(fp);
@@ -163,7 +163,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
     {
         return nullptr;
     }
-    fprintf(stdout, "drawing string: %s\n", SourceString);
+    //fprintf(stdout, "drawing string: %s\n", SourceString);
     size_t StrLength = strlen(SourceString);
 
     constexpr unsigned int MaxTriangles = 1000000;
