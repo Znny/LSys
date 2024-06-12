@@ -44,7 +44,7 @@ void LSystem::Rewrite()
 
     const int MaxCharacters = 1000000;
     char WorkingBuffer[MaxCharacters] = {0};
-    fprintf(stdout, "\n");
+    LogInfo("\n");
 
     for(int i = 0; i < Iterations; i++)
     {
@@ -133,6 +133,7 @@ void LSystem::LoadFromFile(const char *Filename)
         char* axiom = strstr(line, "x:");
         char* angle = strstr(line, "a:");
         char* iterations = strstr(line, "i:");
+
         if(axiom != nullptr)
         {
             SetAxiom(axiom+2);
@@ -148,9 +149,7 @@ void LSystem::LoadFromFile(const char *Filename)
         else if(line[0] > 32 && line[1]==':')
         {
             AddRule(line[0], line+2);
-            //LogDebug("char:%c \trule:%s\n", line[0], line+2);
         }
-        //printf("%s\n",line);
     }
 
     fclose(fp);
@@ -163,7 +162,6 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
     {
         return nullptr;
     }
-    //fprintf(stdout, "drawing string: %s\n", SourceString);
     size_t StrLength = strlen(SourceString);
 
     constexpr unsigned int MaxTriangles = 1000000;
@@ -204,8 +202,14 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
         }
     }
 
-    glm::mat3 RRotate = glm::rotate( glm::identity<glm::mat4>(), System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat3 LRotate = glm::rotate( glm::identity<glm::mat4>(), -System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat3 RollRight = glm::rotate(glm::identity<glm::mat4>(), System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat3 RollLeft = glm::rotate(glm::identity<glm::mat4>(), -System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::mat3 PitchUp = glm::rotate( glm::identity<glm::mat4>(), System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat3 PitchDown = glm::rotate( glm::identity<glm::mat4>(), -System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::mat3 YawLeft = glm::rotate( glm::identity<glm::mat4>(), System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat3 YawRight = glm::rotate( glm::identity<glm::mat4>(), -System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
 
     //process string
     for(int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
@@ -237,12 +241,12 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem &System)
                 Location += (Forwards * System.Distance);
                 break;
             case '+':
-                Forwards = Forwards * RRotate;
-                Right = Right * RRotate;
+                Forwards = Forwards * RollRight;
+                Right = Right * RollRight;
                 break;
             case '-':
-                Forwards = Forwards * LRotate;
-                Right = Right * LRotate;
+                Forwards = Forwards * RollLeft;
+                Right = Right * RollLeft;
                 break;
             default:
                 break;

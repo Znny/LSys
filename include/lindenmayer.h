@@ -66,8 +66,8 @@ struct ColoredTriangle
             VertexColors[i] = glm::vec3(0);
         }
     }
-    glm::vec3 VertexLocations[3];
-    glm::vec3 VertexColors[3];
+    glm::vec3 VertexLocations[3]{};
+    glm::vec3 VertexColors[3]{};
 };
 
 struct ColoredTriangleList
@@ -91,9 +91,9 @@ struct ColoredTriangleList
     {
         TriData[NumTriangles++] = Triangle;
     }
-    int NumTriangles;
-    int MaxTriangles;
-    ColoredTriangle* TriData;
+    long long int NumTriangles = 0;
+    long long int MaxTriangles = 0;
+    ColoredTriangle* TriData = nullptr;
 };
 
 class Turtle
@@ -112,6 +112,8 @@ public:
     glm::vec3 Location;
     glm::vec3 Forwards;
     glm::vec3 Right;
+    //glm::vec3 Up;
+    //glm::mat3 Transform;
 };
 
 
