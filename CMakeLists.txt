@@ -22,6 +22,7 @@ add_executable(
     src/ShaderProgram.cpp
     src/logging.cpp
     src/lindenmayer.cpp
+        Renderable.h
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")
