@@ -23,7 +23,7 @@ ShaderProgram::ShaderProgram(const char* name)
 
 void ShaderProgram::Attach(ShaderObject* Object)
 {
-    fprintf(stdout, "attaching shader %s\n", Object->Filename);
+    LogInfo("attaching shader %s\n", Object->Filename);
     glAttachShader(ProgramID, Object->ObjectID);
     AttachedShaderObjects.push_back(Object);
 }
@@ -32,13 +32,13 @@ bool ShaderProgram::Link()
 {
     if(AttachedShaderObjects.size() < 2)
     {
-        fprintf(stdout, "could not link shader, not enough shader objects attached\n");
+        LogError("could not link shader, not enough shader objects attached\n");
         return false;
     }
     GLint linkStatus = GL_FALSE;
     int info_log_length = 0;
 
-    fprintf(stdout, "linking \"%s\"...\n", Name);
+    LogInfo("linking \"%s\"...\n", Name);
     glLinkProgram(ProgramID);
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &linkStatus);
 
@@ -82,7 +82,7 @@ void ShaderProgram::Reload()
     {
         if(Link())
         {
-            fprintf(stdout, "reloaded shader \"%s\"\n", Name);
+            LogInfo("reloaded shader \"%s\"\n", Name);
         }
     }
 }
