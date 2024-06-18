@@ -11,7 +11,7 @@
 
 struct LS_RewritingRule
 {
-    LS_RewritingRule(): LS_RewritingRule (' ', "")
+    LS_RewritingRule() : LS_RewritingRule(' ', "")
     {
 
     }
@@ -35,9 +35,13 @@ public:
     void LoadFromFile(const char* Filename);
 
     void AddRule(char c, const char* R);
+
     void SetSeed(char* NewSeed);
+
     void SetAxiom(char* NewAxiom);
+
     void Rewrite();
+
     void SetIterations(int iter);
 
     //seed for PRNG
@@ -60,12 +64,13 @@ struct ColoredTriangle
 {
     ColoredTriangle()
     {
-        for(int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
         {
             VertexLocations[i] = glm::vec3(0);
             VertexColors[i] = glm::vec3(0);
         }
     }
+
     glm::vec3 VertexLocations[3]{};
     glm::vec3 VertexColors[3]{};
 };
@@ -76,12 +81,12 @@ struct ColoredTriangleList
     {
         NumTriangles = 0;
         MaxTriangles = MaxTris;
-        TriData = (ColoredTriangle*) malloc( MaxTriangles * sizeof(ColoredTriangle));
+        TriData = (ColoredTriangle*) malloc(MaxTriangles * sizeof(ColoredTriangle));
     }
 
     ~ColoredTriangleList()
     {
-        if(TriData != nullptr)
+        if (TriData != nullptr)
         {
             free(TriData);
         }
@@ -91,6 +96,7 @@ struct ColoredTriangleList
     {
         TriData[NumTriangles++] = Triangle;
     }
+
     long long int NumTriangles = 0;
     long long int MaxTriangles = 0;
     ColoredTriangle* TriData = nullptr;
@@ -100,9 +106,7 @@ class Turtle
 {
 public:
     Turtle()
-    : Location(glm::vec3(0)),
-    Forwards(glm::vec3(0.0, 1.0, 0.0)),
-    Right(glm::vec3(1.0, 0.0, 0.0))
+            : Location(glm::vec3(0)), Forwards(glm::vec3(0.0, 1.0, 0.0)), Right(glm::vec3(1.0, 0.0, 0.0))
     {
 
     }

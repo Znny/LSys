@@ -8,25 +8,35 @@
 #include "ShaderObject.h"
 #include <vector>
 
-class ShaderProgram
+namespace LSYS
 {
-public:
-    ShaderProgram(const char* name = nullptr);
+    namespace Rendering
+    {
 
-    void Attach(ShaderObject* Object);
-    bool Compile();
-    bool Link();
-    void Reload();
+        class ShaderProgram
+        {
+        public:
+            ShaderProgram(const char* name = nullptr);
 
-    //name of the shader program
-    char* Name;
+            void Attach(ShaderObject* Object);
 
-    //opengl shader program identifier
-    GLuint ProgramID;
+            bool Compile();
 
-    //attached shader objects
-    std::vector<ShaderObject*> AttachedShaderObjects;
-};
+            bool Link();
 
+            void Reload();
+
+            //name of the shader program
+            char* Name;
+
+            //opengl shader program identifier
+            GLuint ProgramID;
+
+            //attached shader objects
+            std::vector<ShaderObject*> AttachedShaderObjects;
+        };
+
+    }
+}
 
 #endif //GLBP_SHADERPROGRAM_H

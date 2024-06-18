@@ -8,27 +8,36 @@
 
 #include "glad/glad.h"
 
-class ShaderObject
+namespace LSYS
 {
-public:
-    ShaderObject(const char* filename = nullptr, GLenum shaderType = GL_VERTEX_SHADER);
+    namespace Rendering
+    {
 
-    bool Load(const char* filename, GLenum shaderType);
-    bool Reload();
-    bool Compile();
+        class ShaderObject
+        {
+        public:
+            explicit ShaderObject(const char* filename = nullptr, GLenum shaderType = GL_VERTEX_SHADER);
 
-    //openGL shader object ID, used for bindings and attachment
-    GLuint ObjectID;
+            bool Load(const char* filename, GLenum shaderType);
 
-    //type of shader object, valid values are defined by openGL
-    GLenum Type;
+            bool Reload();
 
-    //file source was loaded from
-    char* Filename;
+            bool Compile();
 
-    //soure of the shader, loaded from a file
-    char* ShaderSource;
-};
+            //openGL shader object ID, used for bindings and attachment
+            GLuint ObjectID;
 
+            //type of shader object, valid values are defined by openGL
+            GLenum Type;
+
+            //file source was loaded from
+            char* Filename;
+
+            //soure of the shader, loaded from a file
+            char* ShaderSource;
+        };
+
+    }
+}
 
 #endif //GLBP_SHADEROBJECT_H

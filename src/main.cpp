@@ -35,13 +35,18 @@ void ProcessArguments(int argc, char** argv);
 
 //sub-initialization functions
 bool InitGraphics();
+
 bool InitInput();
+
 bool InitLSystems();
 
 //run the program, which loops updating time, ticking, rendering, and processing input
 void Run();
+
 void UpdateTiming(GLFWwindow* window);
+
 void Tick(double dt);
+
 void Render(double dt);
 
 //poll input events for callback processing
@@ -111,18 +116,24 @@ const glm::vec3 SceneUp(0.0, 0.0, 1.0);
 
 
 glm::vec3 AxisVertices[6] =
-{
-    SceneOrigin, SceneForward * AxisSize,
-    SceneOrigin, SceneRight * AxisSize,
-    SceneOrigin, SceneUp * AxisSize
-};
+        {
+                SceneOrigin,
+                SceneForward * AxisSize,
+                SceneOrigin,
+                SceneRight * AxisSize,
+                SceneOrigin,
+                SceneUp * AxisSize
+        };
 
 glm::vec3 AxisColors[6] =
-{
-    SceneForward, SceneForward,
-    SceneRight, SceneRight,
-    SceneUp, SceneUp
-};
+        {
+                SceneForward,
+                SceneForward,
+                SceneRight,
+                SceneRight,
+                SceneUp,
+                SceneUp
+        };
 
 //rotation speed in radians/s
 double FixedRotationSpeed = 0.5;
@@ -165,6 +176,9 @@ GLuint AxesVAO;
 GLuint AxesVBO_Positions;
 GLuint AxesVBO_Colors;
 
+//below include ShaderProgram and ShaderObject
+using namespace LSYS::Rendering;
+
 //shader objects
 ShaderProgram* PassthroughShaderProgram;
 ShaderObject* PassthroughVertexShader;
@@ -197,7 +211,7 @@ int main(int argc, char** argv)
     setbuf(stdout, nullptr);
 
     //initialize the sim
-    if(Init(argc, argv))
+    if (Init(argc, argv))
     {
         //run the sim
         Run();
@@ -212,7 +226,7 @@ int main(int argc, char** argv)
 //process program arguments, prepping active L-system for iteration and geometry generation
 void ProcessArguments(int argc, char** argv)
 {
-    for(int i = 0; i < argc; i++)
+    for (int i = 0; i < argc; i++)
     {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
         {
@@ -221,7 +235,7 @@ void ProcessArguments(int argc, char** argv)
         }
         else if (strcmp(argv[i], "-x") == 0 || strcmp(argv[i], "--axiom") == 0)
         {
-            if((i + 1) < argc)
+            if ((i + 1) < argc)
             {
                 ActiveSystem.SetAxiom(argv[i + 1]);
                 i++;
@@ -229,7 +243,7 @@ void ProcessArguments(int argc, char** argv)
         }
         else if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--iterations") == 0)
         {
-            if((i + 1) < argc)
+            if ((i + 1) < argc)
             {
                 ActiveSystem.Iterations = strtol(argv[i + 1], nullptr, 10);
                 i++;
@@ -237,21 +251,21 @@ void ProcessArguments(int argc, char** argv)
         }
         else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--angle") == 0)
         {
-            if((i + 1) < argc)
+            if ((i + 1) < argc)
             {
                 ActiveSystem.Angle = glm::radians(strtof(argv[i + 1], nullptr));
             }
         }
         else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--distance") == 0)
         {
-            if((i + 1) < argc)
+            if ((i + 1) < argc)
             {
                 ActiveSystem.Distance = strtof(argv[i + 1], nullptr);
             }
         }
         else if (strcmp(argv[i], "-L") == 0 || strcmp(argv[i], "--load") == 0)
         {
-            if((i+1) < argc)
+            if ((i + 1) < argc)
             {
                 ActiveSystem.LoadFromFile(argv[i + 1]);
             }
@@ -288,11 +302,17 @@ bool Init(int argc, char** argv)
 bool InitGraphics()
 {
     //attempt initializing GLFW
-    if(!(bGLFWInitialized = glfwInit()))
+    if (!(bGLFWInitialized = glfwInit()))
     {
         LogCritical("GLFW initialization failure.\n");
         return false;
     }
+    LogFatal("blah\n");
+    LogCritical("random critical\n");
+    LogError("random error...\n");
+    LogWarning("hah\n");
+    LogVerbose("vvvvvvvvvvvvvvv\n");
+    LogDebug("uhhhhhhhhhhhhhhhhhh\n");
 
     //set error callback
     glfwSetErrorCallback(ErrorCallback);
@@ -307,8 +327,8 @@ bool InitGraphics()
     const char* Title = "GLBP";
 
     //attempt to create the window
-    MainWindow = glfwCreateWindow( Width, Height, Title, nullptr, nullptr);
-    if(MainWindow == nullptr)
+    MainWindow = glfwCreateWindow(Width, Height, Title, nullptr, nullptr);
+    if (MainWindow == nullptr)
     {
         LogCritical("Window creation failed.\n");
         return false;
@@ -318,7 +338,7 @@ bool InitGraphics()
     glfwMakeContextCurrent(MainWindow);
 
     //load gl extensions
-    if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
         LogCritical("Couldn't load openGL extensions\n");
         return false;
@@ -362,7 +382,7 @@ bool InitGraphics()
     glEnableVertexAttribArray(1);
 
     //setup projection matrix
-    const double AspectRatio = (double)Width / (double)Height;
+    const double AspectRatio = (double) Width / (double) Height;
     constexpr double zNear = 0.1;
     constexpr double zFar = 1000.0;
 
@@ -372,18 +392,19 @@ bool InitGraphics()
     ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0), UpDirection);
     ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE, (GLfloat*)&ViewProjectionMatrix);
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+                       (GLfloat*) &ViewProjectionMatrix);
 
 
     //create vertex buffer for storing per-vertex data
     glGenBuffers(1, &AxesVBO_Positions);
     glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*)AxisVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisVertices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &AxesVBO_Colors);
     glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
     //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*)AxisColors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisColors, GL_STATIC_DRAW);
 
     //create vertax array object for storing info about bound objects and what to render
     glGenVertexArrays(1, &AxesVAO);
@@ -409,7 +430,7 @@ bool InitLSystems()
     ActiveSystem.Rewrite();
     TriangleList = ActiveTurtle.DrawSystem(ActiveSystem);
 
-    if(TriangleList == nullptr)
+    if (TriangleList == nullptr)
     {
         return false;
     }
@@ -422,12 +443,12 @@ bool InitLSystems()
 
     LogInfo("loading %d triangles\n", TriangleList->NumTriangles);
     auto* VertLocations = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations));
-    auto* VertColors= (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors));
+    auto* VertColors = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors));
     //glm::vec3* VertColors[1024*3];
 
-    for(int i = 0; i < TriangleList->NumTriangles; i++)
+    for (int i = 0; i < TriangleList->NumTriangles; i++)
     {
-        for(int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; j++)
         {
             glm::vec3& vert = TriangleList->TriData[i].VertexLocations[j];
             glm::vec3& color = TriangleList->TriData[i].VertexColors[j];
@@ -435,18 +456,24 @@ bool InitLSystems()
             VertLocations[i * 3 + j] = vert;
             VertColors[i * 3 + j] = color;
 
-            if(vert.x < min.x) min.x = vert.x;
-            if(vert.y < min.y) min.y = vert.y;
-            if(vert.z < min.z) min.z = vert.z;
+            if (vert.x < min.x)
+            { min.x = vert.x; }
+            if (vert.y < min.y)
+            { min.y = vert.y; }
+            if (vert.z < min.z)
+            { min.z = vert.z; }
 
-            if(vert.x > max.x) max.x = vert.x;
-            if(vert.y > max.y) max.y = vert.y;
-            if(vert.z > max.z) max.z = vert.z;
+            if (vert.x > max.x)
+            { max.x = vert.x; }
+            if (vert.y > max.y)
+            { max.y = vert.y; }
+            if (vert.z > max.z)
+            { max.z = vert.z; }
         }
     }
     ModelCenter = (min + max) / 2.0f;
 
-    float Distance = glm::length(max.y-min.y);
+    float Distance = glm::length(max.y - min.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
     //ViewDistance = ViewDistances[Iterations];
     ViewDistance = 15.0f;
@@ -457,12 +484,14 @@ bool InitLSystems()
     //create vertex buffer for storing per-vertex data
     glGenBuffers(1, &ColoredVertexBufferObject_Positions);
     glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations), (GLfloat*)VertLocations, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
+                 (GLfloat*) VertLocations, GL_STATIC_DRAW);
 
     glGenBuffers(1, &ColoredVertexBufferObject_Colors);
     glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
     //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors), (GLfloat*)VertColors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
+                 (GLfloat*) VertColors, GL_STATIC_DRAW);
 
     //create vertax array object for storing info about bound objects and what to render
     glGenVertexArrays(1, &ColoredVertexArrayObject);
@@ -504,9 +533,63 @@ bool InitInput()
 
 void Run()
 {
+
+    int r = 0;
+    int g = 0;
+    int b = 255;
+
+    int brightness = 0;
+    int Color = 0;
+
+    int iterations = 10000;
+
+    char* rgbstrings[iterations];
+
+    for (int i = 0; i < iterations; i++)
+    {
+        r = rand() % 255;
+        g = rand() % 255;
+        b = rand() % 255;
+        char what[100] = "";
+        sprintf(what, "38;2;%d;%d;%dm", r, g, b);
+        rgbstrings[i] = strdup(what);
+    }
+
+
+    double startTime = glfwGetTime();
+
+    constexpr bool bUseRGB = false;
+
+    //LogInfo("\x1b[48;2;0;0;0m\n");
+    for (int i = 0; i < iterations; i++)
+    {
+        if (bUseRGB)
+        {
+            //r = rand() % 255;
+            //g = rand() % 255;
+            //b = rand() % 255;
+            //LogInfo("\x1b[38;2;%d;%d;%dm%s\n", r, g, b, "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
+            LogInfo("\x1b[%s%s\n", rgbstrings[i], "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
+        }
+        else
+        {
+            brightness = rand() % 2;
+            Color = (rand() % 8) + ((brightness == 0)
+                                    ? 30
+                                    : 90);
+            LogInfo("\x1b[%dm%s\n", Color, "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
+        }
+    }
+
+    double endTime = glfwGetTime();
+
+    LogFatal("logging %d iterations took %lf seconds!\n", iterations, endTime - startTime);
+    LogFatal("Each print should have taken ~%lf seconds!\n", (endTime - startTime) / iterations);
+
+
     LogInfo("run started at time %lfs, running...\n", glfwGetTime());
 
-    while(!bRequestedExit)
+    while (!bRequestedExit)
     {
         UpdateTiming(MainWindow);
         Tick(DeltaTime);
@@ -528,7 +611,8 @@ void Tick(double dt)
     ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
     ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
 
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE, (GLfloat*)&ViewProjectionMatrix);
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+                       (GLfloat*) &ViewProjectionMatrix);
 }
 
 void Render(double dt)
@@ -570,7 +654,7 @@ void ProcessInput()
     glfwPollEvents();
 
     //request exit if window x has been clicked
-    if(glfwWindowShouldClose(MainWindow))
+    if (glfwWindowShouldClose(MainWindow))
     {
         bRequestedExit = true;
     }
@@ -583,15 +667,15 @@ void Cleanup()
     LogInfo("cleaning up...\n");
 
     //destroy window if one exists
-    if(MainWindow != nullptr)
+    if (MainWindow != nullptr)
     {
-       glfwDestroyWindow(MainWindow);
+        glfwDestroyWindow(MainWindow);
     }
 
     //terminate GLFW
-    if(bGLFWInitialized)
+    if (bGLFWInitialized)
     {
-       glfwTerminate();
+        glfwTerminate();
     }
 
     LogInfo("cleanup complete.\n");
@@ -599,47 +683,52 @@ void Cleanup()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// event callbacks
-void ErrorCallback(int error, const char *description)
+void ErrorCallback(int error, const char* description)
 {
     LogError("Error %X: %s", error, description);
 }
 
-void KeyboardEventCallback(GLFWwindow *Window, int KeyCode, int ScanCode, int Action, int Modifiers)
+void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers)
 {
-    if(Window == nullptr)
+    if (Window == nullptr)
     {
         return;
     }
 
     //set action string
-    const char* ActionString = Action == GLFW_PRESS ? "GLFW_PRESS" : Action == GLFW_RELEASE ? "GLFW_RELEASE" : "GLFW_REPEAT";
+    const char* ActionString =
+            Action == GLFW_PRESS
+            ? "GLFW_PRESS"
+            : Action == GLFW_RELEASE
+              ? "GLFW_RELEASE"
+              : "GLFW_REPEAT";
 
     LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
     LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
-    LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n",glfwGetKeyName(KeyCode, ScanCode));
+    LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
 
-    if(KeyCode == GLFW_KEY_ESCAPE)
+    if (KeyCode == GLFW_KEY_ESCAPE)
     {
         bRequestedExit = true;
     }
-    else if(KeyCode == GLFW_KEY_R)
+    else if (KeyCode == GLFW_KEY_R)
     {
         PassthroughShaderProgram->Reload();
     }
-    else if(KeyCode == GLFW_KEY_RIGHT)
+    else if (KeyCode == GLFW_KEY_RIGHT)
     {
         //Iterations += 1;
     }
-    else if(KeyCode == GLFW_KEY_LEFT)
+    else if (KeyCode == GLFW_KEY_LEFT)
     {
     }
 }
 
-void MouseMoveEventCallback(GLFWwindow *Window, double xPos, double yPos)
+void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 {
-    if(!bLMBHeld)
+    if (!bLMBHeld)
     {
-        if(bLMBDown)
+        if (bLMBDown)
         {
             XWhenLMBPressed = xPos;
             YWhenLMBPressed = yPos;
@@ -648,7 +737,7 @@ void MouseMoveEventCallback(GLFWwindow *Window, double xPos, double yPos)
     }
     else
     {
-        if(!bLMBDown)
+        if (!bLMBDown)
         {
             bLMBHeld = false;
             XWhenLMBPressed = 0.0;
@@ -656,7 +745,7 @@ void MouseMoveEventCallback(GLFWwindow *Window, double xPos, double yPos)
         }
     }
 
-    if(bLMBHeld)
+    if (bLMBHeld)
     {
         double xDif = xPos - XWhenLMBPressed;
         double yDif = yPos - YWhenLMBPressed;
@@ -673,43 +762,43 @@ void MouseMoveEventCallback(GLFWwindow *Window, double xPos, double yPos)
 
 }
 
-void MouseButtonEventCallback(GLFWwindow *Window, int button, int action, int mods)
+void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods)
 {
     //only care about LMB
-    if(button != GLFW_MOUSE_BUTTON_LEFT)
+    if (button != GLFW_MOUSE_BUTTON_LEFT)
     {
         return;
     }
 
     //updated LMB state
-    if(action == GLFW_PRESS)
+    if (action == GLFW_PRESS)
     {
         bLMBDown = true;
     }
-    else if(action == GLFW_RELEASE)
+    else if (action == GLFW_RELEASE)
     {
         bLMBDown = false;
     }
 }
 
-void MouseScrollEventCallback(GLFWwindow *Window, double xOffset, double yOffset)
+void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset)
 {
     const double ScaleOffset = 1.0;
     ViewDistance += yOffset * ScaleOffset;
 }
 
-void WindowResizeEventCallback(GLFWwindow *Window, int NewWidth, int NewHeight)
+void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight)
 {
-    if(Window == nullptr)
+    if (Window == nullptr)
     {
         return;
     }
 
-    if(NewWidth <= 0)
+    if (NewWidth <= 0)
     {
         NewWidth = 1;
     }
-    if(NewHeight <= 0)
+    if (NewHeight <= 0)
     {
         NewHeight = 1;
     }
@@ -720,7 +809,7 @@ void WindowResizeEventCallback(GLFWwindow *Window, int NewWidth, int NewHeight)
 
 void UpdateTiming(GLFWwindow* Window)
 {
-    if(Window == nullptr)
+    if (Window == nullptr)
     {
         return;
     }
@@ -733,7 +822,7 @@ void UpdateTiming(GLFWwindow* Window)
     if (TimeSinceLastUpdate >= 1.0)
     {
         LastTimingUpdateTime = ThisFrameTime;
-        double fps = (double)FrameCount / TimeSinceLastUpdate;
+        double fps = (double) FrameCount / TimeSinceLastUpdate;
         char tmp[128];
         sprintf(tmp, "opengl @ fps: %.2f", fps);
         glfwSetWindowTitle(Window, tmp);
