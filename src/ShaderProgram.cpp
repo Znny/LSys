@@ -23,13 +23,20 @@ namespace LSYS
             }
 
             ProgramID = glCreateProgram();
+            LogVerbose("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
         }
 
         void ShaderProgram::Attach(ShaderObject* Object)
         {
+            if(Object == nullptr)
+            {
+                return;
+            }
+
             LogInfo("attaching shader %s\n", Object->Filename);
             glAttachShader(ProgramID, Object->ObjectID);
             AttachedShaderObjects.push_back(Object);
+            Object->ProgramsIncludedIn.push_back(this);
         }
 
         bool ShaderProgram::Link()

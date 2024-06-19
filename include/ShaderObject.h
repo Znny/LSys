@@ -6,12 +6,14 @@
 #define GLBP_SHADEROBJECT_H
 
 
+#include <vector>
 #include "glad/glad.h"
 
 namespace LSYS
 {
     namespace Rendering
     {
+        class ShaderProgram;
 
         class ShaderObject
         {
@@ -35,6 +37,7 @@ namespace LSYS
 
             //soure of the shader, loaded from a file
             char* ShaderSource;
+            std::vector<ShaderProgram*> ProgramsIncludedIn;
         };
 
     }

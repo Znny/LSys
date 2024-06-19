@@ -11,12 +11,32 @@
 #include <cstdlib>
 #include <cstring>
 #include "logging.hpp"
+#include "ShaderProgram.h"
 
 namespace LSYS
 {
     namespace Rendering
     {
 
+        /*** ShaderObject::ShaderObject
+         *
+         * @param filename - optional filename
+         * @param shaderType - optional shadertype
+         *
+         *  will attempt to load the shaderobject from the given file
+         */
+        ShaderObject::ShaderObject(const char* filename, GLenum shaderType)
+        {
+            if (filename != nullptr)
+            {
+                Load(filename, shaderType);
+            }
+        }
+
+        /*** ShaderObject::Compile
+         *  Tries to compile the shader, logging errors if they are found
+         * @return true if the shader object compiled successfully, false otherwise
+         */
         bool ShaderObject::Compile()
         {
             LogInfo("compiling %s...\n",
@@ -28,12 +48,12 @@ namespace LSYS
             int info_log_length = 0;
             char info_log[1024];
 
-            //set our source and attempt to compile
+            //set shader object source and compile, and get compilation results
             glShaderSource(ObjectID, 1, (const GLchar**) (&ShaderSource), NULL);
             glCompileShader(ObjectID);
             glGetShaderiv(ObjectID, GL_COMPILE_STATUS, &compile_status);
 
-            //check for compile errors
+            //log shader log if compilation failed
             if (compile_status != GL_TRUE)
             {
                 glGetShaderiv(ObjectID, GL_INFO_LOG_LENGTH, &info_log_length);
@@ -48,8 +68,14 @@ namespace LSYS
 
         /*** ShaderObject::Load
          *
-         * @param filename -
-         * @param ShaderType
+         * @param filename - filename of the shader object source we wish to load
+         * @param ShaderType - the type of shader this file represents, valid options are
+         *                   GL_VERTEX_SHADER,
+         *                   GL_TESS_CONTROL_SHADER,
+         *                   GL_TESS_EVALUATION_SHADER,
+         *                   GL_GEOMETRY_SHADER,
+         *                   GL_FRAGMENT_SHADER,
+         *                   GL_COMPUTE_SHADER
          * @return true if file was successfully loaded and its contents were specified as the shader source
          *
          */
@@ -96,7 +122,6 @@ namespace LSYS
             ShaderSource[BytesRead] = '\0'; // Null-terminate the string
 
             LogVerbose("Read %d Bytes\n", BytesRead);
-
             LogVerbose("Contents:\n%s\n", ShaderSource);
 
             // Close file
@@ -104,30 +129,38 @@ namespace LSYS
 
             //set type
             Type = ShaderType;
-            ObjectID = glCreateShader(Type);
+            if(!glIsShader(ObjectID))
+            {
+                ObjectID = glCreateShader(Type);
+            }
 
             return true;
         }
 
-        ShaderObject::ShaderObject(const char* filename, GLenum shaderType)
-        {
-            if (filename != nullptr)
-            {
-                Load(filename, shaderType);
-            }
-        }
-
+        /*** ShaderObject::Reload
+        * Attempt to reload the shader object. This will re-open the file, pull in the source, and attempt compilation
+        * @return true if file the reload and compilation are both successful, false otherwise
+        */
         bool ShaderObject::Reload()
         {
             LogInfo("reloading %s\n", Filename);
 
-            if (Load(Filename, Type))
+            if (!Load(Filename, Type))
             {
-                return Compile();
+                return false;
             }
 
-            return false;
-        }
+            if(!Compile())
+            {
+                return false;
+            }
 
+            for (ShaderProgram* Program : ProgramsIncludedIn)
+            {
+                Program->Link();
+            }
+
+            return true;
+        }
     }
 }
