@@ -1,8 +1,4 @@
 #pragma once
-/*=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-
-  @author Ryan Cosgrove (ryancosgrove@gmail.com)
-  @version 1.0
-\*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 // define REMOVE_ALL_LOGGING to remove all logging from source files
 #ifdef REMOVE_ALL_LOGGING

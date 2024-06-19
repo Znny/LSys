@@ -1,52 +1,49 @@
 #pragma once
-/*=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-
-  @author Ryan Cosgrove (ryancosgrove@gmail.com)
-  @version 1.0
-\*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-#include <stdio.h>
+#include <cstdio>
 #include <cstring>
 #include <cstdarg>
 
+//log severity enum, each severity has its own logging function and file which it outputs to
 enum class ELogSeverity
 {
-    Fatal = 0,
-    Critical,
-    Error,
-    Warning,
-    Info,
-    Verbose,
-    Debug,
-    Count
+    Fatal       = 0,
+    Critical    = 1,
+    Error       = 2,
+    Warning     = 3,
+    Info        = 4,
+    Verbose     = 5,
+    Debug       = 6,
+    Count = 7
 };
 
-/*zen logging function type-def*/
+
+
+//logging function type definition. takes in a file pointer, severity, format, and variadic arguments
 typedef void (* LoggingFunction_t)(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
-/*Logging variables*/
 extern LoggingFunction_t LoggingFunctions[(int) ELogSeverity::Count];
 extern FILE* LoggingFiles[(int) ELogSeverity::Count];
 
-/*Toggle logging*/
+/*** EnableLogging
+ *
+ * @param Severity
+ */
 extern void EnableLogging(ELogSeverity Severity);
 
+/*** DisableLogging
+ *
+ * @param Severity
+ */
 extern void DisableLogging(ELogSeverity Severity);
 
-extern void ToggleLogging(ELogSeverity Severity);
-
-extern void LogConditional(bool Condition, ELogSeverity Severity, const char* TrueFormat, const char* FalseFormat, ...);
-
-/*Set Logging variables*/
 extern void SetLoggingFile(ELogSeverity Severity, FILE* fp);
+extern FILE* GetLoggingFile(ELogSeverity Severity);
 
 extern void SetLoggingFunction(ELogSeverity Severity, LoggingFunction_t func);
+extern LoggingFunction_t GetLoggingFunction(ELogSeverity Severity);
 
-extern void SetLoggingVariables(ELogSeverity Severity, FILE* fp, LoggingFunction_t func);
-
-/*Default logging functions*/
 extern void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
 extern void DisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
-/*=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=*/
-//#define RM_ZLP_VERBOSE
 #include <logging.inl>
