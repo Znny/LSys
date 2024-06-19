@@ -533,60 +533,6 @@ bool InitInput()
 
 void Run()
 {
-
-    int r = 0;
-    int g = 0;
-    int b = 255;
-
-    int brightness = 0;
-    int Color = 0;
-
-    int iterations = 10000;
-
-    char* rgbstrings[iterations];
-
-    for (int i = 0; i < iterations; i++)
-    {
-        r = rand() % 255;
-        g = rand() % 255;
-        b = rand() % 255;
-        char what[100] = "";
-        sprintf(what, "38;2;%d;%d;%dm", r, g, b);
-        rgbstrings[i] = strdup(what);
-    }
-
-
-    double startTime = glfwGetTime();
-
-    constexpr bool bUseRGB = false;
-
-    //LogInfo("\x1b[48;2;0;0;0m\n");
-    for (int i = 0; i < iterations; i++)
-    {
-        if (bUseRGB)
-        {
-            //r = rand() % 255;
-            //g = rand() % 255;
-            //b = rand() % 255;
-            //LogInfo("\x1b[38;2;%d;%d;%dm%s\n", r, g, b, "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
-            LogInfo("\x1b[%s%s\n", rgbstrings[i], "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
-        }
-        else
-        {
-            brightness = rand() % 2;
-            Color = (rand() % 8) + ((brightness == 0)
-                                    ? 30
-                                    : 90);
-            LogInfo("\x1b[%dm%s\n", Color, "whaaaaaaaaaaaaaaaaaaaaaaaaaaat");
-        }
-    }
-
-    double endTime = glfwGetTime();
-
-    LogFatal("logging %d iterations took %lf seconds!\n", iterations, endTime - startTime);
-    LogFatal("Each print should have taken ~%lf seconds!\n", (endTime - startTime) / iterations);
-
-
     LogInfo("run started at time %lfs, running...\n", glfwGetTime());
 
     while (!bRequestedExit)
@@ -752,11 +698,6 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 
         XRotation = xDif * ManualRotationSpeed * 0.0175;
         YRotation = yDif * ManualRotationSpeed * 0.0175;
-
-        printf("xDif:%lf\n", xDif);
-        printf("yDif:%lf\n", yDif);
-        printf("xRot:%lf\n", XRotation);
-        printf("yRot:%lf\n", YRotation);
 
     }
 
