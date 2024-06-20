@@ -210,6 +210,9 @@ int main(int argc, char** argv)
     //this is required to print out properly on windows
     setbuf(stdout, nullptr);
 
+    //required for color terminal output on windows
+    InitializeLogColors();
+
     //initialize the sim
     if (Init(argc, argv))
     {

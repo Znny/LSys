@@ -1,23 +1,24 @@
 #include "logging.hpp"
 
+//color initialization is currently only needed when running on windows
 #ifdef WIN32
 #include <windows.h>
 static bool bColorsInitialized = false;
 #endif
 
-//logging functions for each severity
+///logging functions that each severity uses when logging a message
 LoggingFunction_t LoggingFunctions[(int) ELogSeverity::Count]
         {
-                EnabledLoggingFunction,
-                EnabledLoggingFunction,
-                EnabledLoggingFunction,
-                EnabledLoggingFunction,
-                EnabledLoggingFunction,
-                EnabledLoggingFunction,
-                EnabledLoggingFunction
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction,
+                DefaultEnabledLoggingFunction
         };
 
-//logging files for each severity, defaults to
+///files logged to for each severity, defaults to stdout
 FILE* LoggingFiles[(int) ELogSeverity::Count]
         {
                 stdout,
@@ -30,32 +31,7 @@ FILE* LoggingFiles[(int) ELogSeverity::Count]
         };
 
 
-//enable logging for the given severity
-void EnableLogging(const ELogSeverity Severity)
-{
-    LoggingFunctions[(int) Severity] = EnabledLoggingFunction;
-}
-
-//disable logging for the given severity
-void DisableLogging(const ELogSeverity Severity)
-{
-    LoggingFunctions[(int) Severity] = DisabledLoggingFunction;
-}
-
-//set logging file for the given severity
-void SetLoggingFile(const ELogSeverity Severity, FILE* fp)
-{
-    LoggingFiles[(int) Severity] = fp;
-}
-
-//set custom logging function for the given severity
-void SetLoggingFunction(const ELogSeverity Severity, LoggingFunction_t func)
-{
-    LoggingFunctions[(int) Severity] = func;
-}
-
-//enabled logging function,
-void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...)
+void InitializeLogColors()
 {
 #ifdef WIN32
     if (!bColorsInitialized)
@@ -71,7 +47,31 @@ void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ..
         }
     }
 #endif
+}
 
+void EnableLoggingForSeverity(const ELogSeverity Severity)
+{
+    LoggingFunctions[(int) Severity] = DefaultEnabledLoggingFunction;
+}
+
+void DisableLoggingForSeverity(const ELogSeverity Severity)
+{
+    LoggingFunctions[(int) Severity] = DefaultDisabledLoggingFunction;
+}
+
+void SetLoggingFileForSeverity(const ELogSeverity Severity, FILE* fp)
+{
+    LoggingFiles[(int) Severity] = fp;
+}
+
+void SetLoggingFunctionForSeverity(const ELogSeverity Severity, LoggingFunction_t func)
+{
+    LoggingFunctions[(int) Severity] = func;
+}
+
+//enabled logging function,
+void DefaultEnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...)
+{
     const char* SeverityColors[(int) ELogSeverity::Count]
             {
                     "\x1b[38;2;255;0;255m",     //fatal
@@ -97,7 +97,7 @@ void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ..
     constexpr int MaxEntryLength = 2048;
     char EntryBuffer[MaxEntryLength] = {0};
 
-    sprintf(EntryBuffer, "%s%s:%s", SeverityColors[(int) Severity], SeverityStrings[(int) Severity], fmt);
+    sprintf(EntryBuffer, "%s%s:%s", bColorsInitialized ? SeverityColors[(int) Severity] : "", SeverityStrings[(int) Severity], fmt);
 
     //capture arguments and pass to vfprintf for output
     va_list arglist;
@@ -106,7 +106,7 @@ void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ..
     va_end(arglist);
 }
 
-void DisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...)
+void DefaultDisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...)
 {
     //intentionally left blank
 }

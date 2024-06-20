@@ -16,34 +16,30 @@ enum class ELogSeverity
     Count = 7
 };
 
-
-
 //logging function type definition. takes in a file pointer, severity, format, and variadic arguments
 typedef void (* LoggingFunction_t)(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
+//arrays of logging functions and files, for each severity
 extern LoggingFunction_t LoggingFunctions[(int) ELogSeverity::Count];
 extern FILE* LoggingFiles[(int) ELogSeverity::Count];
 
-/*** EnableLogging
- *
- * @param Severity
- */
-extern void EnableLogging(ELogSeverity Severity);
+//initialize ANSI escape code colors for use in logging. Colors are not used when logging directly to a file
+extern void InitializeLogColors();
 
-/*** DisableLogging
- *
- * @param Severity
- */
+//enable/disable logging for the given severity
+extern void EnableLogging(ELogSeverity Severity);
 extern void DisableLogging(ELogSeverity Severity);
 
+//set/get logging file for the given severity
 extern void SetLoggingFile(ELogSeverity Severity, FILE* fp);
 extern FILE* GetLoggingFile(ELogSeverity Severity);
 
+//set/get logging function for the given severity
 extern void SetLoggingFunction(ELogSeverity Severity, LoggingFunction_t func);
 extern LoggingFunction_t GetLoggingFunction(ELogSeverity Severity);
 
-extern void EnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
-
-extern void DisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
+//default logging functions
+extern void DefaultEnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
+extern void DefaultDisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
 #include <logging.inl>
