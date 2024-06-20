@@ -1,10 +1,7 @@
 //
 // Created by ryan on 5/26/24.
 //
-
-#ifndef GLBP_SHADEROBJECT_H
-#define GLBP_SHADEROBJECT_H
-
+#pragma once
 
 #include <vector>
 #include "glad/glad.h"
@@ -42,5 +39,3 @@ namespace LSYS
 
     }
 }
-
-#endif //GLBP_SHADEROBJECT_H
