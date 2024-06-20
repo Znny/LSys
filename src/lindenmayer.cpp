@@ -8,25 +8,41 @@
 #include "logging.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-void LSystem::SetSeed(char* NewSeed)
+/** LSystem::LSystem
+ * Default constructor for L-Systems
+ */
+LSystem::LSystem()
 {
-    Seed = strdup(NewSeed);
+    char* NewAxiom = strdup("F--F--F");
+    SetAxiom(NewAxiom);
+    Angle = glm::radians(60.0f);
+    Distance = 0.2;
 }
 
+/** LSystem::SetAxiom
+ *
+ * @param NewAxiom
+ */
 void LSystem::SetAxiom(char* NewAxiom)
 {
     Axiom = strdup(NewAxiom);
-    //LogDebug("Axiom=%s", NewAxiom);
 }
 
+/** LSystem::AddRule
+ *
+ * @param c
+ * @param R
+ */
 void LSystem::AddRule(char c, const char* R)
 {
     LS_RewritingRule& Rule = RewritingRules[(int) c];
     Rule.Character = c;
     Rule.RString = strdup(R);
-    LogDebug("Rule Added > %c:%s\n", Rule.Character, Rule.RString);
 }
 
+/** LSystem::Rewrite
+ *
+ */
 void LSystem::Rewrite()
 {
     if (Axiom == nullptr)
@@ -67,7 +83,6 @@ void LSystem::Rewrite()
             LS_RewritingRule& Rule = RewritingRules[(int) Character];
             if (Rule.Character == Character && Rule.RString != nullptr)
             {
-                //LogVerbose("using rule: %c:%s\n", Rule.Character, Rule.RString);
                 strcat(WorkingBuffer, Rule.RString);
                 NumGeneratedCharacters += strlen(Rule.RString);
             }
@@ -75,18 +90,6 @@ void LSystem::Rewrite()
             {
                 WorkingBuffer[NumGeneratedCharacters++] = SourceString[c];
             }
-            /*
-            switch(SourceString[c])
-            {
-                case 'f':
-                    strcat(WorkingBuffer, "f+f--f+f");
-                    NumGeneratedCharacters += 8;
-                    break;
-                default:
-                    WorkingBuffer[NumGeneratedCharacters++] = SourceString[c];
-                break;
-            }
-             */
         }
 
         //if the previously generated string is not null, free it
@@ -106,14 +109,12 @@ void LSystem::Rewrite()
     }
 }
 
-LSystem::LSystem()
-{
-    char* NewAxiom = strdup("F--F--F");
-    SetAxiom(NewAxiom);
-    Angle = glm::radians(60.0f);
-    Distance = 0.2;
-}
 
+
+/** LSystem::LoadFromFile
+ *
+ * @param Filename
+ */
 void LSystem::LoadFromFile(const char* Filename)
 {
     if (Filename == nullptr)
@@ -157,6 +158,11 @@ void LSystem::LoadFromFile(const char* Filename)
     fclose(fp);
 }
 
+/** Turtle::DrawSystem
+ *
+ * @param System
+ * @return
+ */
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 {
     char* SourceString = System.GeneratedString != nullptr
@@ -169,44 +175,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     size_t StrLength = strlen(SourceString);
 
     constexpr unsigned int MaxTriangles = 1000000;
-    ColoredTriangleList* Triangles = new ColoredTriangleList(1000000);
-
-    constexpr bool bGenTriangleSoup = false;
-    if (bGenTriangleSoup)
-    {
-        for (int i = 0; i < MaxTriangles; i++)
-        {
-            ColoredTriangle& Triangle = Triangles->TriData[i];
-
-            //set center to -5 to 5
-            glm::vec3 center;
-            center.x = (rand() % 1000) / 1000.0f;
-            center.y = (rand() % 1000) / 1000.0f;
-            center.z = (rand() % 1000) / 1000.0f;
-            center -= 0.5;
-            center *= 10.0f;
-
-            for (int v = 0; v < 3; v++)
-            {
-                glm::vec3& vertex = Triangles->TriData[i].VertexLocations[v];
-                glm::vec3& color = Triangles->TriData[i].VertexColors[v];
-
-                vertex.x = (rand() % 1000) / 1000.0;
-                vertex.y = (rand() % 1000) / 1000.0;
-                vertex.z = (rand() % 1000) / 1000.0;
-                vertex *= 1.0f;
-
-                vertex = center + vertex;
-
-                color.x = (rand() % 1000) / 1000.0;
-                color.y = (rand() % 1000) / 1000.0;
-                color.z = (rand() % 1000) / 1000.0;
-
-                LogDebug("\tvertex[%d]=(%2.2lf,%2.2lf,%2.2lf)\n", v, vertex.x, vertex.y, vertex.z);
-                LogDebug("\tcolor[%d]=(%2.2lf,%2.2lf,%2.2lf)\n", v, color.x, color.y, color.z);
-            }
-        }
-    }
+    ColoredTriangleList* Triangles = new ColoredTriangleList(MaxTriangles);
 
     glm::mat3 RollRight = glm::rotate(glm::identity<glm::mat4>(), System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat3 RollLeft = glm::rotate(glm::identity<glm::mat4>(), -System.Angle, glm::vec3(0.0f, 0.0f, 1.0f));
