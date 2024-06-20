@@ -1,191 +1,7 @@
 //
 // Created by Ryan on 5/22/2024.
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// header file includes
-
-///opengl extension loader and glfw
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-///glm
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-///std
-#include <cstdlib>
-#include <cstdio>
-
-///GLBP
-#include "ShaderProgram.h"
-#include "lindenmayer.h"
-#include "logging.hpp"
-#include "LSystemAlphabet.h"
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//initialize the program, calling sub-init functions
-bool Init(int argc, char** argv);
-
-//print out program usage
-void Usage();
-
-//process program arguments and set variables for initialization
-void ProcessArguments(int argc, char** argv);
-
-//sub-initialization functions
-bool InitGraphics();
-
-bool InitInput();
-
-bool InitLSystems();
-
-//run the program, which loops updating time, ticking, rendering, and processing input
-void Run();
-
-void UpdateTiming(GLFWwindow* window);
-
-void Tick(double dt);
-
-void Render(double dt);
-
-//poll input events for callback processing
-void ProcessInput();
-
-//keyboard event callback function
-void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers);
-
-//mouse movement event callback function
-void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos);
-
-void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods);
-
-void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset);
-
-//window resize event callback function
-void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight);
-
-//error callback function
-void ErrorCallback(int error, const char* description);
-
-//cleanup the program
-void Cleanup();
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//main window for the sim
-GLFWwindow* MainWindow = nullptr;
-
-//default resolution of the window if none is specified
-constexpr int DefaultWidth = 1440;
-constexpr int DefaultHeight = 1440;
-
-//width and height to use for the window
-static int Width = DefaultWidth;
-static int Height = DefaultHeight;
-
-//camera
-
-//projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
-glm::mat4 ProjectionMatrix = glm::mat4();
-
-//view matrix, representing the viewers transform in space (camera transform)
-glm::mat4 ViewMatrix = glm::mat4();
-
-//vp matrix representing camera transform and lens
-glm::mat4 ViewProjectionMatrix = glm::mat4();
-
-//view distance from the center of the scene, defaults to 10 but calculated in InitGraphics
-double ViewDistance = 10.0;
-
-//Eye location at any given point in time
-glm::vec3 EyeLocation;
-
-//center of the bounding box that constrains our model, calculated immediately after model creation
-glm::vec3 ModelCenter = glm::vec3(0);
-
-//up direction, always pointing in positive Y
-glm::vec3 UpDirection(0.0, 1.0, 0.0);
-
-//axes rendering
-
-const float AxisSize = 5.0f;
-const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
-const glm::vec3 SceneForward(1.0, 0.0, 0.0);
-const glm::vec3 SceneRight(0.0, 1.0, 0.0);
-const glm::vec3 SceneUp(0.0, 0.0, 1.0);
-
-
-glm::vec3 AxisVertices[6] =
-        {
-                SceneOrigin,
-                SceneForward * AxisSize,
-                SceneOrigin,
-                SceneRight * AxisSize,
-                SceneOrigin,
-                SceneUp * AxisSize
-        };
-
-glm::vec3 AxisColors[6] =
-        {
-                SceneForward,
-                SceneForward,
-                SceneRight,
-                SceneRight,
-                SceneUp,
-                SceneUp
-        };
-
-//rotation speed in radians/s
-double FixedRotationSpeed = 0.5;
-double ManualRotationSpeed = 5.0;
-double XRotation = 0.0;
-double YRotation = 0.0;
-double ZRotation = 0.0;
-
-bool bLMBDown = false;
-bool bLMBHeld = false;
-double XWhenLMBPressed = 0.0;
-double YWhenLMBPressed = 0.0;
-
-//timing
-static double LastFrameTime = 0;
-static double ThisFrameTime = 0;
-static double LastTimingUpdateTime = 0;
-static double DeltaTime = 0.0;
-static unsigned int FrameCount = 0;
-
-//exit flag
-static bool bRequestedExit = false;
-
-//initialization flags
-static bool bGLFWInitialized = false;
-
-LSystem ActiveSystem;
-Turtle ActiveTurtle;
-ColoredTriangleList* TriangleList = nullptr;
-
-constexpr double FoV_y_degrees = 50;
-constexpr double FoV_y = glm::radians(FoV_y_degrees);
-
-//colored triangle vao/vbo, etc.
-GLuint ColoredVertexArrayObject;
-GLuint ColoredVertexBufferObject_Positions;
-GLuint ColoredVertexBufferObject_Colors;
-
-GLuint AxesVAO;
-GLuint AxesVBO_Positions;
-GLuint AxesVBO_Colors;
-
-//below include ShaderProgram and ShaderObject
-using namespace LSYS::Rendering;
-
-//shader objects
-ShaderProgram* PassthroughShaderProgram;
-ShaderObject* PassthroughVertexShader;
-ShaderObject* PassthroughFragmentShader;
-
-
-LSystemAlphabet Alphabet;
+#include "main.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -296,8 +112,6 @@ bool Init(int argc, char** argv)
 
     InitInput();
 
-    printf("\n");
-
     LogInfo("initialization successful.\n");
     return true;
 }
@@ -310,12 +124,6 @@ bool InitGraphics()
         LogCritical("GLFW initialization failure.\n");
         return false;
     }
-    LogFatal("blah\n");
-    LogCritical("random critical\n");
-    LogError("random error...\n");
-    LogWarning("hah\n");
-    LogVerbose("vvvvvvvvvvvvvvv\n");
-    LogDebug("uhhhhhhhhhhhhhhhhhh\n");
 
     //set error callback
     glfwSetErrorCallback(ErrorCallback);
@@ -324,11 +132,7 @@ bool InitGraphics()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-    //enable antialiasing
-    //glfwWindowHint(GLFW_SAMPLES, 4);
-
     const char* Title = "GLBP";
-
     //attempt to create the window
     MainWindow = glfwCreateWindow(Width, Height, Title, nullptr, nullptr);
     if (MainWindow == nullptr)
@@ -381,8 +185,6 @@ bool InitGraphics()
     //initialize L systems
     InitLSystems();
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
 
     //setup projection matrix
     const double AspectRatio = (double) Width / (double) Height;
@@ -399,114 +201,132 @@ bool InitGraphics()
                        (GLfloat*) &ViewProjectionMatrix);
 
 
-    //create vertex buffer for storing per-vertex data
-    glGenBuffers(1, &AxesVBO_Positions);
-    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisVertices, GL_STATIC_DRAW);
+    {
+        //create vertax array object for axes rendering
+        glGenVertexArrays(1, &AxesVAO);
+        glBindVertexArray(AxesVAO);
 
-    glGenBuffers(1, &AxesVBO_Colors);
-    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
-    //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisColors, GL_STATIC_DRAW);
+        //create vbo for axes verex positions
+        glGenBuffers(1, &AxesVBO_Positions);
+        glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
+        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisVertices, GL_STATIC_DRAW);
+        //specify vertex packing for locations, and enable the attribute array
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
 
-    //create vertax array object for storing info about bound objects and what to render
-    glGenVertexArrays(1, &AxesVAO);
-    glBindVertexArray(AxesVAO);
+        //create vbo for axes vertex colors
+        glGenBuffers(1, &AxesVBO_Colors);
+        glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
+        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisColors, GL_STATIC_DRAW);
+        //specify vertex packing for colors, and enable the attribute array
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
 
-    //specify vertex attribute 0 and specify format
-    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    }
 
-    //specify color layout
-    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    constexpr double Red = 0.0f;
+    constexpr double Green = 0.0f;
+    constexpr double Blue = 0.0f;
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    //set clear color
+    glClearColor(Red, Green, Blue, 1.0);
 
     return true;
 }
 
 bool InitLSystems()
 {
-    //set system angle and distance
+    //do rewrite for the currently active system
     ActiveSystem.Rewrite();
+
+    //use our active turtle to draw the system and return a list of triangles
     TriangleList = ActiveTurtle.DrawSystem(ActiveSystem);
 
+    //if no triangles are present, return early
     if (TriangleList == nullptr)
     {
         return false;
     }
 
+    //min and max values for floating point
     constexpr float FLOAT_MIN = 1.175494351E-38;
     constexpr float FLOAT_MAX = 3.402823466E+38;
+
+    //set initial values for min and max
     glm::vec3 min = glm::vec3(FLOAT_MAX);
     glm::vec3 max = glm::vec3(FLOAT_MIN);
     glm::vec3 center = glm::vec3(0.0);
 
     LogInfo("loading %d triangles\n", TriangleList->NumTriangles);
+
+    //allocate memory for vertex locations and colors
     auto* VertLocations = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations));
     auto* VertColors = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors));
-    //glm::vec3* VertColors[1024*3];
 
-    for (int i = 0; i < TriangleList->NumTriangles; i++)
+    //iterate over all vertices of all triangles, and set vert locations and colors in their respective arrays
+    for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
     {
-        for (int j = 0; j < 3; j++)
+        for (int VertIndex = 0; VertIndex < 3; VertIndex++)
         {
-            glm::vec3& vert = TriangleList->TriData[i].VertexLocations[j];
-            glm::vec3& color = TriangleList->TriData[i].VertexColors[j];
+            glm::vec3& vert = TriangleList->TriData[TriangleIndex].VertexLocations[VertIndex];
+            glm::vec3& color = TriangleList->TriData[TriangleIndex].VertexColors[VertIndex];
 
-            VertLocations[i * 3 + j] = vert;
-            VertColors[i * 3 + j] = color;
+            VertLocations[TriangleIndex * 3 + VertIndex] = vert;
+            VertColors[TriangleIndex * 3 + VertIndex] = color;
 
-            if (vert.x < min.x)
-            { min.x = vert.x; }
-            if (vert.y < min.y)
-            { min.y = vert.y; }
-            if (vert.z < min.z)
-            { min.z = vert.z; }
+            //track min and max values for vertices in all three dimensions (finding bounding box)
+            {
+                if (vert.x < min.x)
+                { min.x = vert.x; }
+                if (vert.y < min.y)
+                { min.y = vert.y; }
+                if (vert.z < min.z)
+                { min.z = vert.z; }
 
-            if (vert.x > max.x)
-            { max.x = vert.x; }
-            if (vert.y > max.y)
-            { max.y = vert.y; }
-            if (vert.z > max.z)
-            { max.z = vert.z; }
+                if (vert.x > max.x)
+                { max.x = vert.x; }
+                if (vert.y > max.y)
+                { max.y = vert.y; }
+                if (vert.z > max.z)
+                { max.z = vert.z; }
+            }
         }
     }
+
+    //calculate model center
     ModelCenter = (min + max) / 2.0f;
 
     float Distance = glm::length(max.y - min.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
-    //ViewDistance = ViewDistances[Iterations];
     ViewDistance = 15.0f;
 
     LogInfo("viewdistance = %f\n", ViewDistance);
 
+    {
+        //create vertax array object for storing info about bound objects and what to render
+        glGenVertexArrays(1, &ColoredVertexArrayObject);
+        glBindVertexArray(ColoredVertexArrayObject);
 
-    //create vertex buffer for storing per-vertex data
-    glGenBuffers(1, &ColoredVertexBufferObject_Positions);
-    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
-                 (GLfloat*) VertLocations, GL_STATIC_DRAW);
+        //create vertex buffer for storing per-vertex data
+        glGenBuffers(1, &ColoredVertexBufferObject_Positions);
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
+        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
+                     (GLfloat*) VertLocations, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &ColoredVertexBufferObject_Colors);
-    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
-    //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), TriangleColors, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
-                 (GLfloat*) VertColors, GL_STATIC_DRAW);
+        //specify location layout, and enable vertex attribute array
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
 
-    //create vertax array object for storing info about bound objects and what to render
-    glGenVertexArrays(1, &ColoredVertexArrayObject);
-    glBindVertexArray(ColoredVertexArrayObject);
+        glGenBuffers(1, &ColoredVertexBufferObject_Colors);
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
+        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
+                     (GLfloat*) VertColors, GL_STATIC_DRAW);
 
-    //specify vertex attribute 0 and specify format
-    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        //specify color layout, and enable vertex attribute array
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
 
-    //specify color layout
-    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    }
 
     return true;
 }
@@ -551,44 +371,33 @@ void Run()
 
 void Tick(double dt)
 {
-    //EyeLocation = glm::vec3(ViewDistance, 0.0, 0.0) + ModelCenter;
-    //EyeLocation = glm::vec3(cos(ThisFrameTime * RotationSpeed) * ViewDistance, 0.0, sin(ThisFrameTime * RotationSpeed) * ViewDistance) + ModelCenter;
+    //update eye location. X / Z plane position is based on X rotation
+    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(glfwGetTime()) * 5.0, sin(XRotation) * ViewDistance) + ModelCenter;
 
-    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0, sin(XRotation) * ViewDistance) + ModelCenter;
-
-
+    //view matrix centers the camera at EyeLocation, looking at ModelCenter
     ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
     ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
-
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ViewProjectionMatrix);
 }
 
 void Render(double dt)
 {
-    //update uniform variables
-    //camera variables
-    //timing variables
-    //resolution
-    //mouse info
-
-    constexpr double Red = 0.0f;
-    constexpr double Green = 0.0f;
-    constexpr double Blue = 0.0f;
-
-    //set clear color
-    glClearColor(Red, Green, Blue, 1.0);
-
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    //update uniform variables, in this case just ViewProjectionMatrix
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+                       (GLfloat*) &ViewProjectionMatrix);
+
     //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
-        //render here
+        //enable the passthrough shader program
         glUseProgram(PassthroughShaderProgram->ProgramID);
+
+        //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
         glDrawArrays(GL_LINES, 0, 6);
 
+        //bind and draw ColoredVertexArrayObject
         glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
