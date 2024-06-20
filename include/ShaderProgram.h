@@ -1,9 +1,7 @@
 //
 // Created by ryan on 5/26/24.
 //
-
-#ifndef GLBP_SHADERPROGRAM_H
-#define GLBP_SHADERPROGRAM_H
+#pragma once
 
 #include "ShaderObject.h"
 #include <vector>
@@ -38,5 +36,3 @@ namespace LSYS
 
     }
 }
-
-#endif //GLBP_SHADERPROGRAM_H
