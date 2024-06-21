@@ -5,28 +5,34 @@
 #include "ShaderProgram.h"
 #include "logging.hpp"
 #include <cstring>
-#include <stdio.h>
 
 namespace LSYS
 {
     namespace Rendering
     {
-        ShaderProgram::ShaderProgram(const char* name)
+        /** ShaderProgram::ShaderProgram
+         * @param FilenameToLoad
+         */
+        ShaderProgram::ShaderProgram(const char* FilenameToLoad)
         {
-            if (name != nullptr)
+            if (FilenameToLoad != nullptr)
             {
-                Name = strdup(name);
+                ProgramName = strdup(FilenameToLoad);
             }
             else
             {
-                Name = strdup("unspecified");
+                ProgramName = strdup("unspecified");
             }
 
             ProgramID = glCreateProgram();
-            LogVerbose("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
+            //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
         }
 
-        void ShaderProgram::Attach(ShaderObject* Object)
+        /** ShaderProgram::AttachShaderObject
+         *  Attaches the given shader object to this shader program
+         * @param Object
+         */
+        void ShaderProgram::AttachShaderObject(ShaderObject* Object)
         {
             if(Object == nullptr)
             {
@@ -39,7 +45,12 @@ namespace LSYS
             Object->ProgramsIncludedIn.push_back(this);
         }
 
-        bool ShaderProgram::Link()
+        /** ShaderProgram::LinkShaderProgram
+         * attempts to link the shader program shader objects together into a valid pipeline
+         * uncompiled shader-objects will attempt to be compiled
+         * @returns true if shader program linked successfully
+         */
+        bool ShaderProgram::LinkShaderProgram()
         {
             if (AttachedShaderObjects.size() < 2)
             {
@@ -49,7 +60,7 @@ namespace LSYS
             GLint linkStatus = GL_FALSE;
             int info_log_length = 0;
 
-            LogInfo("linking \"%s\"...\n", Name);
+            LogInfo("linking \"%s\"...\n", ProgramName);
             glLinkProgram(ProgramID);
             glGetProgramiv(ProgramID, GL_LINK_STATUS, &linkStatus);
 
@@ -71,7 +82,11 @@ namespace LSYS
             return true;
         }
 
-        bool ShaderProgram::Compile()
+        /*** ShaderProgram::CompileAttachedShaders
+         * attempts to compile attached shaders
+         * @return true if all attached shaderobjects were compiled successfully
+         */
+        bool ShaderProgram::CompileAttachedShaders()
         {
             bool bSucceeding = true;
             for (int i = 0; i < AttachedShaderObjects.size() && bSucceeding; i++)
@@ -82,18 +97,24 @@ namespace LSYS
             return bSucceeding;
         }
 
-        void ShaderProgram::Reload()
+        /*** ShaderProgram::ReloadShaderObjects
+         * attempts to reload all shader objects
+         */
+        void ShaderProgram::ReloadShaderObjects()
         {
-            bool bSucceeding = true;
+            bool bReloadSucceeded = true;
+            //attempt to reload each attached shader object
             for (int i = 0; i < AttachedShaderObjects.size(); i++)
             {
-                bSucceeding = bSucceeding && AttachedShaderObjects[i]->Reload();
+                bReloadSucceeded = bReloadSucceeded && AttachedShaderObjects[i]->Reload();
             }
-            if (bSucceeding)
+
+            //attempt to link if reload succeeded
+            if (bReloadSucceeded)
             {
-                if (Link())
+                if (LinkShaderProgram())
                 {
-                    LogInfo("reloaded shader \"%s\"\n", Name);
+                    LogInfo("reloaded shader \"%s\"\n", ProgramName);
                 }
             }
         }

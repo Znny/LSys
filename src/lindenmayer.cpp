@@ -36,8 +36,8 @@ void LSystem::SetAxiom(char* NewAxiom)
 void LSystem::AddRule(char c, const char* R)
 {
     LS_RewritingRule& Rule = RewritingRules[(int) c];
-    Rule.Character = c;
-    Rule.RString = strdup(R);
+    Rule.CharacterReplaced = c;
+    Rule.ReplacementString = strdup(R);
 }
 
 /** LSystem::Rewrite
@@ -81,10 +81,10 @@ void LSystem::Rewrite()
                 continue;
             }
             LS_RewritingRule& Rule = RewritingRules[(int) Character];
-            if (Rule.Character == Character && Rule.RString != nullptr)
+            if (Rule.CharacterReplaced == Character && Rule.ReplacementString != nullptr)
             {
-                strcat(WorkingBuffer, Rule.RString);
-                NumGeneratedCharacters += strlen(Rule.RString);
+                strcat(WorkingBuffer, Rule.ReplacementString);
+                NumGeneratedCharacters += strlen(Rule.ReplacementString);
             }
             else
             {
@@ -159,6 +159,71 @@ void LSystem::LoadFromFile(const char* Filename)
 }
 
 /** Turtle::DrawSystem
+ *  See http://algorithmicbotany.org/papers/abop/abop.pdf page 209
+ *  Turtle Interpretation of symbols
+ *
+ * //Lindenmayer alphabet and interpretation
+ *  F : Move forward and draw a line
+ *  f : Move forward without drawing a line
+ *  + : Turn left
+ *  - : Turn Right
+ *  ^ : Pitch up
+ *  & : Pitch down
+ *  \ : Roll Left
+ *  / : Roll right
+ *  | : Turn around
+ *  $ : Rotate the turtle to the vertical
+ *  [ : start a branch
+ *  ] : complete a branch
+ *  { : Start a polygon
+ *  G : Move forward and draw a line. Do not record a vertex
+ *  . : Record a vertex in the current polygon
+ *  } : Complete a polygon
+ *  ~ : Incorporate a predefined surface
+ *  ! : Decrement the diameter of segments
+ *  ' : Intrement the current color index
+ *  % : Cut off the remainder of the branch
+ *
+ *
+ * //Revised Lindenmayer alphabet and interpretation
+ *  | : Move FORWARD and draw a line
+ *  / : Move RIGHT-FORWARD and draw a line
+ *  \ : Move LEFT-FORWARD and draw a line
+ *  < : turn LEFT (+Up Rotation)
+ *  > : turn RIGHT (-Up Rotation)
+ *  ^ : pitch UP (+Right Rotation) ?
+ *  v : pitch DOWN (-Right Rotation) ?
+ *  R : Roll Left
+ *  L : Roll right
+ *  X : Turn around
+ *  * : Rotate the turtle to the vertical
+ *  [ : start a branch
+ *  ] : complete a branch
+ *  { : Start a polygon
+ *  !  : Move forward and draw a line. Do not record a vertex
+ *  . : Record a vertex in the current polygon
+ *  } : Complete a polygon
+ *    : Incorporate a predefined surface
+ *    : Decrement the diameter of segments
+ *    : Increment the current color index
+ *    : Cut off the remainder of the branch
+ *
+ *
+ *  vvvvvvvvvv AVAILABLE CHARACTERS vvvvvvvv
+ *
+ *  ` 1 2 3 4 5 6 7 8 9 0 [ ]
+ *  ' , . p y f g c r l / =
+ *  a o e u i d h t n s -
+ *  ; q j k x b m w v z
+ *
+ * SHIFT
+ *  ~ ! @ # $ % ^ & * ( ) { }
+ *  " < > P Y F G C R L ? + |
+ *  A O E U I D H T N S _
+ *  : Q J K X B M W V Z
+ *
+ *
+ *  1 2 3 4 5 6 7 8 9 0 [ ]
  *
  * @param System
  * @return
@@ -231,3 +296,12 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     return Triangles;
 }
 
+void LS_RewritingRule::PasteReplacementString(char** LocationToPastePtr)
+{
+    if(LocationToPastePtr != nullptr)
+    {
+        size_t StringLength = strlen(ReplacementString);
+        //for(int i = 0; i < ReplacementString)
+        //**LocationToPastePtr =
+    }
+}

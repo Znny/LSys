@@ -7,6 +7,11 @@
 #include <glm/glm.hpp>
 #include <cstring>
 
+/** Lindenmayer System rewriting rule
+ *  consists of a character and a string which said character is replaced with
+ *  replacement occurs when a string is being 'rewritten'
+ *      which replaces each character in the string occording to the rewriting rules
+ */
 struct LS_RewritingRule
 {
     LS_RewritingRule() : LS_RewritingRule(' ', "")
@@ -14,14 +19,16 @@ struct LS_RewritingRule
 
     }
 
-    LS_RewritingRule(char c, const char* R)
+    LS_RewritingRule(char In_CharacterReplaced, const char* In_ReplacementString)
     {
-        Character = c;
-        RString = strdup(R);
+        CharacterReplaced = In_CharacterReplaced;
+        ReplacementString = strdup(In_ReplacementString);
     }
 
-    char Character;
-    char* RString;
+    char CharacterReplaced;
+    char* ReplacementString;
+
+    void PasteReplacementString(char** LocationToPastePtr);
 };
 
 /* LSystem
@@ -53,6 +60,7 @@ public:
     /** SetIterations
      * Sets the number of iterations to be run when Rewrite is called
      * @param iter - the new number of iterations
+     *  creates new renderable for the given iteration, so it can be rendered
      */
     void SetIterations(int iter);
 

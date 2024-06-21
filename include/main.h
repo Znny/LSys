@@ -76,7 +76,7 @@ void Cleanup();
 GLFWwindow* MainWindow = nullptr;
 
 //default resolution of the window if none is specified
-constexpr int DefaultWidth = 1440;
+constexpr int DefaultWidth = 1920;
 constexpr int DefaultHeight = 1440;
 
 //width and height to use for the window

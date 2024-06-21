@@ -33,7 +33,7 @@ namespace LSYS
             }
         }
 
-        /*** ShaderObject::Compile
+        /*** ShaderObject::CompileAttachedShaders
          *  Tries to compile the shader, logging errors if they are found
          * @return true if the shader object compiled successfully, false otherwise
          */
@@ -137,7 +137,7 @@ namespace LSYS
             return true;
         }
 
-        /*** ShaderObject::Reload
+        /*** ShaderObject::ReloadShaderObjects
         * Attempt to reload the shader object. This will re-open the file, pull in the source, and attempt compilation
         * @return true if file the reload and compilation are both successful, false otherwise
         */
@@ -157,7 +157,7 @@ namespace LSYS
 
             for (ShaderProgram* Program : ProgramsIncludedIn)
             {
-                Program->Link();
+                Program->LinkShaderProgram();
             }
 
             return true;

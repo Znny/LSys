@@ -14,18 +14,43 @@ namespace LSYS
         class ShaderProgram
         {
         public:
-            ShaderProgram(const char* name = nullptr);
+            //explicit needed to avoid unnecessary implicit conversions
+            explicit ShaderProgram(const char* FilenameToLoad = nullptr);
 
-            void Attach(ShaderObject* Object);
+            GLuint GetProgramID() const
+            {
+                return ProgramID;
+            };
 
-            bool Compile();
+            /** AttachShaderObject
+             * @param Object - the shader object to attach to the shader program
+             */
+            void AttachShaderObject(ShaderObject* Object);
 
-            bool Link();
+            /** CompileAttachedShaders - attempts to compile all attached shader objects
+             * @return true if all shader objects compiled successfully
+             */
+            bool CompileAttachedShaders();
 
-            void Reload();
+            /** LinkShaderProgram
+             * @return true if linking the shader program was successful
+             */
+            bool LinkShaderProgram();
 
+            /** ReloadShaderObjects
+             * ReloadShaderObjects all shader objects
+             */
+            void ReloadShaderObjects();
+
+            /** ReProcess
+             *  ReProcess(load and compile) all attached shader objects
+             *  followed by re-linking the program
+             */
+            void ReProcess();
+
+        private:
             //name of the shader program
-            char* Name;
+            char* ProgramName;
 
             //opengl shader program identifier
             GLuint ProgramID;

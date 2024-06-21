@@ -176,11 +176,11 @@ bool InitGraphics()
     PassthroughFragmentShader->Compile();
 
     //attach shaders to the shader program
-    PassthroughShaderProgram->Attach(PassthroughVertexShader);
-    PassthroughShaderProgram->Attach(PassthroughFragmentShader);
+    PassthroughShaderProgram->AttachShaderObject(PassthroughVertexShader);
+    PassthroughShaderProgram->AttachShaderObject(PassthroughFragmentShader);
 
     //link the program
-    PassthroughShaderProgram->Link();
+    PassthroughShaderProgram->LinkShaderProgram();
 
     //initialize L systems
     InitLSystems();
@@ -197,7 +197,7 @@ bool InitGraphics()
     ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0), UpDirection);
     ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ViewProjectionMatrix);
 
 
@@ -385,13 +385,13 @@ void Render(double dt)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //update uniform variables, in this case just ViewProjectionMatrix
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ViewProjectionMatrix);
 
     //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
         //enable the passthrough shader program
-        glUseProgram(PassthroughShaderProgram->ProgramID);
+        glUseProgram(PassthroughShaderProgram->GetProgramID());
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
@@ -461,9 +461,9 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
               ? "GLFW_RELEASE"
               : "GLFW_REPEAT";
 
-    LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
-    LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
-    LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
+    ///LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
+    ///LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
+    ///LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
 
     if (KeyCode == GLFW_KEY_ESCAPE)
     {
@@ -471,19 +471,31 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
     }
     else if (KeyCode == GLFW_KEY_R)
     {
-        PassthroughShaderProgram->Reload();
+        //todo: make this reload ALL shaders
+        PassthroughShaderProgram->ReloadShaderObjects();
     }
     else if (KeyCode == GLFW_KEY_RIGHT)
     {
-        //Iterations += 1;
+        //todo: increase which iteration we're rendering,
+        //todo: if it's more than GeneratedIterations, create it
+        //todo: update what is rendered
     }
     else if (KeyCode == GLFW_KEY_LEFT)
     {
+        //todo: same as above, but decrement iteration
+        //todo: if the iteration < 0, ignore the attempted change
     }
 }
 
-void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
+/** MouseMoveEventCallback
+ *  Callback which handles mouse move events
+ * @param ActiveWindow - active window which provides x/y context for the mouse
+ * @param xPos - x position of the mouse, in pixels?
+ * @param yPos - y position of the mouse, in pixels?
+ */
+void MouseMoveEventCallback(GLFWwindow* ActiveWindow, double xPos, double yPos)
 {
+    //LogDebug("xPos=%lf\t\t\tyPos=%lf\n", xPos, yPos);
     if (!bLMBHeld)
     {
         if (bLMBDown)
