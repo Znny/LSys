@@ -18,9 +18,12 @@
 
 ///GLBP
 #include "ShaderProgram.h"
-#include "lindenmayer.h"
 #include "logging.hpp"
 #include "LSystemAlphabet.h"
+
+//LSYS
+#include "lindenmayer.h"
+#include "Turtle.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

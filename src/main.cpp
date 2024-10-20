@@ -381,8 +381,15 @@ void Tick(double dt)
 
 void Render(double dt)
 {
+    const double Red = sin(ThisFrameTime);
+    const double Green = sin(ThisFrameTime * 0.5);
+    const double Blue = sin(ThisFrameTime * 0.25);
+
+    glClearColor(Red, Green, Blue, 1.0);
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ///*
 
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
@@ -401,6 +408,7 @@ void Render(double dt)
         glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
+    //*/
 
     //swap front and back buffers
     glfwSwapBuffers(MainWindow);
