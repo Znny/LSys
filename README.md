@@ -27,3 +27,7 @@ todo:
     add remaining l-system drawing symbols
     add view distance adjustment input
     add rotation input, rotation toggle
+
+
+When a turtle 'draws' it should be in a rendering-agnostic way, 
+and convert to a proper rendering format afterwards
