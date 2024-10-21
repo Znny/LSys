@@ -7,10 +7,13 @@
 
 #include "glm.hpp"
 
+/**
+* @file Line.h
+* data structure representing a line
+*/
 struct Line
 {
     glm::vec3 p0, p1;
 };
-
 
 #endif //LINE_H
