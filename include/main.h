@@ -110,9 +110,9 @@ glm::vec3 UpDirection(0.0, 1.0, 0.0);
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
-const glm::vec3 SceneForward(1.0, 0.0, 0.0);
-const glm::vec3 SceneRight(0.0, 1.0, 0.0);
-const glm::vec3 SceneUp(0.0, 0.0, 1.0);
+const glm::vec3 SceneForward(0.0, 0.0, -1.0);
+const glm::vec3 SceneRight(1.0, 0.0, 0.0);
+const glm::vec3 SceneUp(0.0, 1.0, 0.0);
 
 
 glm::vec3 AxisVertices[6] =
