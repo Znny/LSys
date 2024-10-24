@@ -23,38 +23,71 @@ public:
 
     }
 
-    //Move forward a given distance
+    /***
+     * @brief Move forward a given distance
+     * @param Distance The distance to move forward
+     */
     void MoveForward(float Distance);
 
-    //Turn Right a given angle
-    void TurnRight(float Angle = 90.0f);
-    void TurnLeft(float Angle = 90.0f);
+    /***
+     * @brief Yaw Right by a given angle (default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
+    void YawRight(float Angle = 90.0f);
+
+    /***
+     * @brief Yaw Left by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
+    void YawLeft(float Angle = 90.0f);
+
+    /***
+     * @brief Pitch up by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
     void PitchUp(float Angle = 90.0f);
+
+    /***
+     * @brief Pitch down by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
     void PitchDown(float Angle = 90.0f);
+
+    /***
+     * @brief Roll Left by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
     void RollLeft(float Angle = 90.0f);
+
+    /***
+     * @brief Roll Right by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
     void RollRight(float Angle = 90.0f);
 
+
+
     //special movement
-    void TurnAround();
-    void RotateToVertical();
+    //void TurnAround();
+    //void RotateToVertical();
 
     //branch management
-    void StartBranch();
-    void CompleteBranch();
-    void CutOffRemainderOfBranch();
+    //void StartBranch();
+    //void CompleteBranch();
+    //void CutOffRemainderOfBranch();
 
     //move and draw commands
-    void MoveForwardAndDraw();
+    //void MoveForwardAndDraw();
 
     //polygon creation
-    void StartPolygon();
-    void RecordVertex();
-    void DrawForwardNoRecord();
-    void CompletePolygon();
+    //void StartPolygon();
+    //void RecordVertex();
+    //void DrawForwardNoRecord();
+    //void CompletePolygon();
 
-    void IncorporatePredefinedSurface();
-    void DecrementSegmentDiameter();
-    void IncrementColorIndex();
+    //void IncorporatePredefinedSurface();
+    //void DecrementSegmentDiameter();
+    //void IncrementColorIndex();
 
     /** Turtle::DrawSystem
      * @param System - the system to draw
