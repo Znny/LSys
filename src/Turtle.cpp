@@ -4,11 +4,41 @@
 
 #include "Turtle.h"
 
-/** Turtle::DrawSystem
- *
- * @param System
- * @return
- */
+void Turtle::MoveForward(float Distance)
+{
+    MyTransform.SetLocation(MyTransform.GetLocation() + MyTransform.GetForwardVector() * Distance);
+}
+
+void Turtle::YawRight(float Angle)
+{
+    MyTransform.Rotate(MyTransform.GetUpVector(), Angle);
+}
+
+void Turtle::YawLeft(float Angle)
+{
+    YawRight(-Angle);
+}
+
+void Turtle::PitchUp(float Angle)
+{
+    MyTransform.Rotate(MyTransform.GetRightVector(), Angle);
+}
+
+void Turtle::PitchDown(float Angle)
+{
+    PitchUp(-Angle);
+}
+
+void Turtle::RollLeft(float Angle)
+{
+    MyTransform.Rotate(MyTransform.GetForwardVector(), Angle);
+}
+
+void Turtle::RollRight(float Angle)
+{
+    RollLeft(-Angle);
+}
+
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 {
     char* SourceString = System.GeneratedString != nullptr
@@ -23,6 +53,69 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     constexpr unsigned int MaxTriangles = 1000000;
     ColoredTriangleList* Triangles = new ColoredTriangleList(MaxTriangles);
 
+    ColoredTriangle Triangle;
+
+
+    for(int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
+    {
+        switch (SourceString[i])
+        {
+            case 'F':
+            {
+                //cache half width
+                glm::vec3 HalfWidth = MyTransform.GetRightVector() * 0.1f * System.Distance;
+
+                //get start and end locations
+                glm::vec3 StartLocation = MyTransform.GetLocation();
+                MoveForward(System.Distance);
+                glm::vec3 EndLocation = MyTransform.GetLocation();
+                glm::vec3 TriangleVerts[4] =
+                {
+                    StartLocation - HalfWidth,
+                    StartLocation + HalfWidth,
+                    EndLocation - HalfWidth,
+                    EndLocation + HalfWidth
+                };
+
+                Triangle.VertexLocations[0] = TriangleVerts[0];
+                Triangle.VertexLocations[1] = TriangleVerts[1];
+                Triangle.VertexLocations[2] = TriangleVerts[2];
+                Triangle.RandomizeColors();
+                Triangles->AddTriangle(Triangle);
+
+                Triangle.VertexLocations[0] = TriangleVerts[2];
+                Triangle.VertexLocations[1] = TriangleVerts[1];
+                Triangle.VertexLocations[2] = TriangleVerts[3];
+                Triangle.RandomizeColors();
+                Triangles->AddTriangle(Triangle);
+            }
+            break;
+            case 'f':
+                MoveForward(System.Distance);
+            break;
+            case '+':
+                YawRight(System.Angle);
+            break;
+            case '-':
+                YawLeft(System.Angle);
+            break;
+            case '^':
+                PitchUp(System.Angle);
+            break;
+            case '&':
+                PitchDown(System.Angle);
+            break;
+            case '\\':
+                RollLeft(System.Angle);
+            break;
+            case '/':
+                RollRight(System.Angle);
+            break;
+
+        }
+    }
+
+    /*
     //process string
     for (int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
     {
@@ -63,6 +156,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
                 break;
         }
     }
+    */
 
     return Triangles;
 }
