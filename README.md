@@ -30,4 +30,4 @@ todo:
 
 
 When a turtle 'draws' it should be in a rendering-agnostic way, 
-and convert to a proper rendering format afterwards
+and convert to a proper rendering format afterward
