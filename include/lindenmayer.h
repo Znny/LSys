@@ -65,21 +65,22 @@ public:
 
 
     //initial string which rewriting works off of
-    char* Axiom;
+    char* Axiom = nullptr;
 
     //the generated string from a number of rewritings, is used as an intermediary if multiple iterations occur
-    char* GeneratedString;
+    char* GeneratedString = nullptr;
 
     //rules for rewniting the axiom or generated string for each iteration of rewriting
     LS_RewritingRule RewritingRules[128];
 
+
     //the number of times the string should be rewritten, using the rewriting rules provided
-    int Iterations;
+    int Iterations = 1.0f;
 
     //the distance a turtle should move when a move command is read
-    float Distance;
+    float Distance = 1.0f;
 
     //the angle a turtle should rotate when a rotation command is read
-    float Angle;
+    float Angle = 90.0f;
 };
 
