@@ -13,6 +13,10 @@ public:
           Scale(glm::vec3(1.0f))
     {}
 
+    static constexpr glm::vec3 WorldForward{0.0f, 0.0f, -1.0f};
+    static constexpr glm::vec3 WorldRight{1.0f, 0.0f, 0.0f};
+    static constexpr glm::vec3 WorldUp{0.0f, 1.0f, 0.0f};
+
     // Getters
     glm::vec3 GetTranslation() const { return Translation; }
     glm::vec3 GetLocation() const { return Translation; }
@@ -26,9 +30,9 @@ public:
     void SetScale(const glm::vec3& v) { Scale = v; }
 
     // Directional Vectors
-    glm::vec3 GetForwardVector() const { return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, -1.0f)); }
-    glm::vec3 GetRightVector() const { return glm::normalize(Rotation * glm::vec3(1.0f, 0.0f, 0.0f)); }
-    glm::vec3 GetUpVector() const { return glm::normalize(Rotation * glm::vec3(0.0f, 1.0f, 0.0f)); }
+    glm::vec3 GetForwardVector() const { return glm::normalize(Rotation * WorldForward); }
+    glm::vec3 GetRightVector() const { return glm::normalize(Rotation * WorldRight); }
+    glm::vec3 GetUpVector() const { return glm::normalize(Rotation * WorldUp); }
 
     // Transform Modifiers
     void AddTranslation(const glm::vec3& v) { Translation += v; }
