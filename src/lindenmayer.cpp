@@ -15,7 +15,7 @@ LSystem::LSystem()
 {
     char* NewAxiom = strdup("F--F--F");
     SetAxiom(NewAxiom);
-    Angle = glm::radians(60.0f);
+    Angle = 60.0f;
     Distance = 0.2;
 }
 
@@ -143,7 +143,7 @@ void LSystem::LoadFromFile(const char* Filename)
         }
         else if (angle != nullptr)
         {
-            Angle = glm::radians(atof(line + 2));
+            Angle = atof(line + 2);
         }
         else if (iterations != nullptr)
         {
