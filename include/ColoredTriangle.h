@@ -23,6 +23,16 @@ struct ColoredTriangle
 
     glm::vec3 VertexLocations[3]{};
     glm::vec3 VertexColors[3]{};
+
+    void RandomizeColors()
+    {
+        for ( glm::vec3& VertexColor : VertexColors)
+        {
+            VertexColor.r = (rand() % 1000) / 1000.0f;
+            VertexColor.g = (rand() % 1000) / 1000.0f;
+            VertexColor.b = (rand() % 1000) / 1000.0f;
+        }
+    }
 };
 
 /* ColoredTriangleList
