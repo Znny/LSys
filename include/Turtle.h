@@ -13,59 +13,12 @@
 /* Turtle class
  * used for interpreting and drawing L-Systems
  */
-class Turtle
+class Turtle : public Transform
 {
 public:
-    Turtle()
-            : MyTransform()
-    //Location(glm::vec3(0)), Forwards(glm::vec3(0.0, 1.0, 0.0)), Right(glm::vec3(1.0, 0.0, 0.0))
-    {
+    Turtle()=default;
 
-    }
-
-    /***
-     * @brief Move forward a given distance
-     * @param Distance The distance to move forward
-     */
     void MoveForward(float Distance);
-
-    /***
-     * @brief Yaw Right by a given angle (default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void YawRight(float Angle = 90.0f);
-
-    /***
-     * @brief Yaw Left by a given angle(default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void YawLeft(float Angle = 90.0f);
-
-    /***
-     * @brief Pitch up by a given angle(default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void PitchUp(float Angle = 90.0f);
-
-    /***
-     * @brief Pitch down by a given angle(default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void PitchDown(float Angle = 90.0f);
-
-    /***
-     * @brief Roll Left by a given angle(default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void RollLeft(float Angle = 90.0f);
-
-    /***
-     * @brief Roll Right by a given angle(default 90 degrees)
-     * @param Angle - the angle to rotate by
-     */
-    void RollRight(float Angle = 90.0f);
-
-
 
     //special movement
     //void TurnAround();
@@ -94,8 +47,6 @@ public:
      * @return A list of ColoredTriangles
      */
     ColoredTriangleList* DrawSystem(LSystem& System);
-
-    Transform MyTransform;
 };
 
 

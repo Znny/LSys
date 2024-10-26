@@ -13,9 +13,9 @@ public:
           Scale(glm::vec3(1.0f))
     {}
 
-    static constexpr glm::vec3 WorldForward{0.0f, 0.0f, -1.0f};
-    static constexpr glm::vec3 WorldRight{1.0f, 0.0f, 0.0f};
-    static constexpr glm::vec3 WorldUp{0.0f, 1.0f, 0.0f};
+    static const glm::vec3 WorldForward;
+    static const glm::vec3 WorldRight;
+    static const glm::vec3 WorldUp;
 
     // Getters
     glm::vec3 GetTranslation() const { return Translation; }
@@ -37,11 +37,25 @@ public:
     // Transform Modifiers
     void AddTranslation(const glm::vec3& v) { Translation += v; }
 
-    void Rotate(const glm::vec3& axisOfRotation, float amount)
-    {
-        glm::quat rotationQuat = glm::angleAxis(glm::radians(amount), glm::normalize(axisOfRotation));
-        Rotation = glm::normalize(rotationQuat * Rotation);
-    }
+    void Rotate(const glm::vec3& AxisOfRotation, float Degrees);
+
+     /***
+     * @brief Yaw by a given angle (default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
+    void AdjustYaw(float Angle = 90.0f);
+
+    /***
+     * @brief Pitch by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
+    void AdjustPitch(float Angle = 90.0f);
+
+    /***
+     * @brief Roll by a given angle(default 90 degrees)
+     * @param Angle - the angle to rotate by
+     */
+    void AdjustRoll(float Angle = 90.0f);
 
     // Transformation Matrix
     glm::mat4 GetMatrix() const
@@ -52,8 +66,10 @@ public:
         return translationMatrix * rotationMatrix * scaleMatrix;
     }
 
-private:
+protected:
     glm::vec3 Translation;
     glm::quat Rotation;
     glm::vec3 Scale;
 };
+
+

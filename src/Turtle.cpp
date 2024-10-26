@@ -3,40 +3,11 @@
 //
 
 #include "Turtle.h"
+#include "stdio.h"
 
 void Turtle::MoveForward(float Distance)
 {
-    MyTransform.SetLocation(MyTransform.GetLocation() + MyTransform.GetForwardVector() * Distance);
-}
-
-void Turtle::YawRight(float Angle)
-{
-    MyTransform.Rotate(MyTransform.GetUpVector(), Angle);
-}
-
-void Turtle::YawLeft(float Angle)
-{
-    YawRight(-Angle);
-}
-
-void Turtle::PitchUp(float Angle)
-{
-    MyTransform.Rotate(MyTransform.GetRightVector(), Angle);
-}
-
-void Turtle::PitchDown(float Angle)
-{
-    PitchUp(-Angle);
-}
-
-void Turtle::RollLeft(float Angle)
-{
-    MyTransform.Rotate(MyTransform.GetForwardVector(), Angle);
-}
-
-void Turtle::RollRight(float Angle)
-{
-    RollLeft(-Angle);
+    SetLocation(GetLocation() + GetForwardVector() * Distance);
 }
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
@@ -63,12 +34,12 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             case 'F':
             {
                 //cache half width
-                glm::vec3 HalfWidth = MyTransform.GetRightVector() * 0.1f * System.Distance;
+                glm::vec3 HalfWidth = GetRightVector() * 0.1f * System.Distance;
 
                 //get start and end locations
-                glm::vec3 StartLocation = MyTransform.GetLocation();
+                glm::vec3 StartLocation = GetLocation();
                 MoveForward(System.Distance);
-                glm::vec3 EndLocation = MyTransform.GetLocation();
+                glm::vec3 EndLocation = GetLocation();
                 glm::vec3 TriangleVerts[4] =
                 {
                     StartLocation - HalfWidth,
@@ -94,24 +65,23 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
                 MoveForward(System.Distance);
             break;
             case '+':
-                YawRight(System.Angle);
+                AdjustYaw(System.Angle);
             break;
             case '-':
-                YawLeft(System.Angle);
+                AdjustYaw(-System.Angle);
             break;
             case '^':
-                PitchUp(System.Angle);
+                AdjustPitch(System.Angle);
             break;
             case '&':
-                PitchDown(System.Angle);
+                AdjustPitch(-System.Angle);
             break;
             case '\\':
-                RollLeft(System.Angle);
+                AdjustRoll(System.Angle);
             break;
             case '/':
-                RollRight(System.Angle);
+                AdjustRoll(-System.Angle);
             break;
-
         }
     }
 
