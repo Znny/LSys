@@ -296,6 +296,13 @@ bool InitLSystems()
     //calculate model center
     ModelCenter = (min + max) / 2.0f;
 
+    for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
+    {
+        for(int v = 0; v < 3; v++)
+        {
+            VertLocations[TriangleIndex*3 + v] -= ModelCenter;
+        }
+    }
     float Distance = glm::length(max.y - min.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
     ViewDistance = 15.0f;
@@ -371,8 +378,10 @@ void Run()
 
 void Tick(double dt)
 {
+    ModelCenter = glm::vec3(0);
     //update eye location. X / Z plane position is based on X rotation
-    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(glfwGetTime()) * 5.0, sin(XRotation) * ViewDistance) + ModelCenter;
+    //EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(glfwGetTime()) * 5.0, sin(XRotation) * ViewDistance) + ModelCenter;
+    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(YRotation) * ViewDistance, sin(XRotation) * ViewDistance) + ModelCenter;
 
     //view matrix centers the camera at EyeLocation, looking at ModelCenter
     ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
@@ -469,24 +478,35 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
               ? "GLFW_RELEASE"
               : "GLFW_REPEAT";
 
-    LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
-    LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
-    LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
-
-    if (KeyCode == GLFW_KEY_ESCAPE)
+    //LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
+    //LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
+    //LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
+    if(Action == GLFW_PRESS || Action == GLFW_REPEAT)
     {
-        bRequestedExit = true;
-    }
-    else if (KeyCode == GLFW_KEY_R)
-    {
-        PassthroughShaderProgram->Reload();
-    }
-    else if (KeyCode == GLFW_KEY_RIGHT)
-    {
-        //Iterations += 1;
-    }
-    else if (KeyCode == GLFW_KEY_LEFT)
-    {
+        if (KeyCode == GLFW_KEY_ESCAPE)
+        {
+            bRequestedExit = true;
+        }
+        else if (KeyCode == GLFW_KEY_R)
+        {
+            PassthroughShaderProgram->Reload();
+        }
+        else if (KeyCode == GLFW_KEY_RIGHT)
+        {
+            XRotation += ManualRotationSpeed * 0.0175;
+        }
+        else if (KeyCode == GLFW_KEY_LEFT)
+        {
+            XRotation -= ManualRotationSpeed * 0.0175;
+        }
+        else if (KeyCode == GLFW_KEY_UP)
+        {
+            YRotation += ManualRotationSpeed * 0.0175;
+        }
+        else if (KeyCode == GLFW_KEY_DOWN)
+        {
+            YRotation -= ManualRotationSpeed * 0.0175;
+        }
     }
 }
 
