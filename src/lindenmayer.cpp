@@ -8,6 +8,12 @@
 #include "logging.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+LS_RewritingRule::LS_RewritingRule(char c, const char *R)
+{
+    Character = c;
+    RString = strdup(R);
+}
+
 /** LSystem::LSystem
  * Default constructor for L-Systems
  */

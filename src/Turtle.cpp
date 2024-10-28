@@ -3,7 +3,8 @@
 //
 
 #include "Turtle.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <cstring>
 
 void Turtle::MoveForward(float Distance)
 {

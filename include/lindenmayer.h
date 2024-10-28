@@ -3,20 +3,11 @@
 //
 #pragma once
 
-#include <cstring>
 
 struct LS_RewritingRule
 {
-    LS_RewritingRule() : LS_RewritingRule(' ', "")
-    {
-
-    }
-
-    LS_RewritingRule(char c, const char* R)
-    {
-        Character = c;
-        RString = strdup(R);
-    }
+    LS_RewritingRule() : LS_RewritingRule(' ', ""){}
+    LS_RewritingRule(char c, const char* R);
 
     char Character;
     char* RString;

@@ -1,7 +1,5 @@
 #pragma once
 #include <cstdio>
-#include <cstring>
-#include <cstdarg>
 
 //log severity enum, each severity has its own logging function and file which it outputs to
 enum class ELogSeverity

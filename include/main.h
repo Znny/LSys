@@ -12,14 +12,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-///std
-#include <cstdlib>
-#include <cstdio>
-
 ///GLBP
 #include "ShaderProgram.h"
-#include "logging.hpp"
-#include "LSystemAlphabet.h"
 
 //LSYS
 #include "lindenmayer.h"
@@ -92,6 +86,8 @@ glm::mat4 ProjectionMatrix = glm::mat4();
 
 //view matrix, representing the viewers transform in space (camera transform)
 glm::mat4 ViewMatrix = glm::mat4();
+
+
 
 //vp matrix representing camera transform and lens
 glm::mat4 ViewProjectionMatrix = glm::mat4();

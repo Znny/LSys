@@ -20,24 +20,24 @@ struct CharacterRuleMapping
 
 //Map datastructure, just created an alias for
 template<typename KeyType, typename ValueType>
-    class Map
+class Map
+{
+public:
+
+    Map<KeyType, ValueType>(KeyType K, ValueType V)
+            : internal_data()
     {
-    public:
+        //this left blank
+    }
 
-        Map<KeyType, ValueType>(KeyType K, ValueType V)
-                : internal_data()
-        {
-            //this left blank
-        }
+    std::map<KeyType, ValueType>& operator->()
+    {
+        return internal_data;
+    }
 
-        std::map<KeyType, ValueType>& operator->()
-        {
-            return internal_data;
-        }
-
-    private:
-        std::map<KeyType, ValueType> internal_data;
-    };
+private:
+    std::map<KeyType, ValueType> internal_data;
+};
 
 //alias for RuleFunction, Rule
 typedef RuleFunction Rule;
