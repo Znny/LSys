@@ -23,6 +23,7 @@
 
 //LSYS
 #include "lindenmayer.h"
+#include "Transform.h"
 #include "Turtle.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,30 +111,27 @@ glm::vec3 UpDirection(0.0, 1.0, 0.0);
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
-const glm::vec3 SceneForward(0.0, 0.0, -1.0);
-const glm::vec3 SceneRight(1.0, 0.0, 0.0);
-const glm::vec3 SceneUp(0.0, 1.0, 0.0);
 
-
-glm::vec3 AxisVertices[6] =
-        {
-                SceneOrigin,
-                SceneForward * AxisLength,
-                SceneOrigin,
-                SceneRight * AxisLength,
-                SceneOrigin,
-                SceneUp * AxisLength
-        };
+//glm::vec3 WorldUp = Transform::WorldForward;
+const glm::vec3 AxisVertices[6] =
+{
+        SceneOrigin,
+        Transform::WorldRight * AxisLength,
+        SceneOrigin,
+        Transform::WorldUp * AxisLength,
+        SceneOrigin,
+        Transform::WorldForward * AxisLength,
+};
 
 glm::vec3 AxisColors[6] =
-        {
-                SceneForward,
-                SceneForward,
-                SceneRight,
-                SceneRight,
-                SceneUp,
-                SceneUp
-        };
+{
+        glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0),
+        glm::vec3(0.0, 0.0, 1.0),
+};
 
 //rotation speed in radians/s
 double FixedRotationSpeed = 0.5;
@@ -141,6 +139,7 @@ double ManualRotationSpeed = 5.0;
 double XRotation = 0.0;
 double YRotation = 0.0;
 double ZRotation = 0.0;
+double BoomDistance;
 
 bool bLMBDown = false;
 bool bLMBHeld = false;

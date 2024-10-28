@@ -381,11 +381,11 @@ void Tick(double dt)
 
 void Render(double dt)
 {
-    const double Red = sin(ThisFrameTime);
-    const double Green = sin(ThisFrameTime * 0.5);
-    const double Blue = sin(ThisFrameTime * 0.25);
+    //const double Red = sin(ThisFrameTime);
+    //const double Green = sin(ThisFrameTime * 0.5);
+    //const double Blue = sin(ThisFrameTime * 0.25);
 
-    glClearColor(Red, Green, Blue, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
