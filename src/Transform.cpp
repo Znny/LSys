@@ -4,31 +4,51 @@
 
 #include "Transform.h"
 
+#include <ColoredTriangle.h>
+#include <ColoredTriangle.h>
+#include <windows.h>
+
 const glm::vec3 Transform::WorldForward{0.0f, 0.0f, -1.0f};
 const glm::vec3 Transform::WorldRight{1.0f, 0.0f, 0.0f};
 const glm::vec3 Transform::WorldUp{0.0f, 1.0f, 0.0f};
 
-void Transform::Rotate(const glm::vec3 &AxisOfRotation, float Degrees)
+void Transform::RotateLocal(const glm::vec3 &AxisOfRotation, float Degrees)
 {
     glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
     Rotation = glm::normalize(rotationQuat * Rotation);
 }
 
+void Transform::RotateWorld(const glm::vec3 &AxisOfRotation, float Degrees)
+{
+    glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
+    Translation = Translation * rotationQuat;
+    Rotation = glm::normalize(rotationQuat * Rotation);
+}
+
+void Transform::RotateAroundPoint(const glm::vec3 &PointOfRotation, const glm::vec3 &AxisOfRotation, float Degrees)
+{
+    Translation -= PointOfRotation;
+
+    RotateWorld(AxisOfRotation, Degrees);
+
+    Translation += PointOfRotation;
+}
+
 void Transform::AdjustYaw(float Angle)
 {
     //do the rotation
-    Rotate(GetUpVector(), Angle);
+    RotateLocal(GetUpVector(), Angle);
 }
 
 void Transform::AdjustPitch(float Angle)
 {
     //do the rotation
-    Rotate(GetRightVector(), Angle);
+    RotateLocal(GetRightVector(), Angle);
 }
 
 void Transform::AdjustRoll(float Angle)
 {
     //do the rotation
-    Rotate(GetForwardVector(), Angle);
+    RotateLocal(GetForwardVector(), Angle);
 }
 

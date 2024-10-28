@@ -40,7 +40,9 @@ public:
     // Transform Modifiers
     void AddTranslation(const glm::vec3& v) { Translation += v; }
 
-    void Rotate(const glm::vec3& AxisOfRotation, float Degrees);
+    void RotateLocal(const glm::vec3& AxisOfRotation, float Degrees);
+    void RotateWorld(const glm::vec3& AxisOfRotation, float Degrees);
+    void RotateAroundPoint(const glm::vec3& PointOfRotation, const glm::vec3& AxisOfRotation, float Degrees);
 
      /***
      * @brief Yaw by a given angle (default 90 degrees)
