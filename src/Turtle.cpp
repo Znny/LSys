@@ -26,13 +26,22 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 
     ColoredTriangle Triangle;
 
+    glm::vec3 CurrentColor;
+    CurrentColor.r = (rand() % 1000) / 1000.0f;
+    CurrentColor.g = (rand() % 1000) / 1000.0f;
+    CurrentColor.g = 0.1;
+    CurrentColor.b = (rand() % 1000) / 1000.0f;
 
     for(int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
     {
         switch (SourceString[i])
         {
-            case 'F':
-            {
+            case 'F': {
+                glm::vec3 NextColor;
+                NextColor.r = (rand() % 1000) / 1000.0f;
+                NextColor.g = (rand() % 1000) / 1000.0f;
+                NextColor.g = 0.1;
+                NextColor.b = (rand() % 1000) / 1000.0f;
                 //cache half width
                 glm::vec3 HalfWidth = GetRightVector() * 0.1f * System.Distance;
 
@@ -47,18 +56,31 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
                     EndLocation - HalfWidth,
                     EndLocation + HalfWidth
                 };
+                glm::vec3 TriangleColors[4] =
+                {
+                    CurrentColor, CurrentColor,
+                    NextColor, NextColor
+                };
 
-                Triangle.VertexLocations[0] = TriangleVerts[0];
-                Triangle.VertexLocations[1] = TriangleVerts[1];
-                Triangle.VertexLocations[2] = TriangleVerts[2];
-                Triangle.RandomizeColors();
+                for(int j = 0; j < 3; j++)
+                    {
+                    Triangle.VertexLocations[j] = TriangleVerts[j];
+                    Triangle.VertexColors[j] = TriangleColors[j];
+                }
+                //Triangle.VertexLocations[0] = TriangleVerts[0];
+                //Triangle.VertexLocations[1] = TriangleVerts[1];
+                //Triangle.VertexLocations[2] = TriangleVerts[2];
                 Triangles->AddTriangle(Triangle);
 
                 Triangle.VertexLocations[0] = TriangleVerts[2];
                 Triangle.VertexLocations[1] = TriangleVerts[1];
                 Triangle.VertexLocations[2] = TriangleVerts[3];
-                Triangle.RandomizeColors();
+                Triangle.VertexColors[0] = TriangleColors[2];
+                Triangle.VertexColors[1] = TriangleColors[1];
+                Triangle.VertexColors[2] = TriangleColors[3];
+                //Triangle.RandomizeColors();
                 Triangles->AddTriangle(Triangle);
+                CurrentColor=NextColor;
             }
             break;
             case 'f':
