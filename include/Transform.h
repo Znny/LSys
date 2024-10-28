@@ -1,3 +1,6 @@
+#ifndef _TRANSFORM_INCLUDED
+#define _TRANSFORM_INCLUDED
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -72,4 +75,4 @@ protected:
     glm::vec3 Scale;
 };
 
-
+#endif//ifndef _TRANSFORM_INCLUDED
