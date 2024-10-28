@@ -4,7 +4,14 @@
 
 #include "Camera.h"
 
-void Camera::SetProjectionMode(const CameraProjectionMode &Mode)
+Camera::Camera(double Width, double Height, double Near, double Far, ECameraProjectionMode Mode, double VerticalFOV)
+{
+    ProjectionMode = Mode;
+    VerticalFieldOfView = VerticalFOV;
+    SetClipDimensions(Width, Height, Near, Far);
+}
+
+void Camera::SetProjectionMode(const ECameraProjectionMode& Mode)
 {
     ProjectionMode = Mode;
     UpdateProjectionMatrix();
@@ -50,13 +57,13 @@ const glm::mat4& Camera::GetProjectionMatrix() const
 
 glm::mat4 Camera::GetViewProjectionMatrix() const
 {
-    return ProjectionMatrix * GetMatrix();
+    return ProjectionMatrix * inverse(GetMatrix());
 }
 
 void Camera::UpdateProjectionMatrix()
 {
     ProjectionMatrix =
-        ProjectionMode == CameraProjectionMode::Perspective
+        ProjectionMode == ECameraProjectionMode::Perspective
             ? glm::perspective(VerticalFieldOfView, ClipWidth / ClipHeight, NearClipDistance, FarClipDistance)
             : glm::ortho(0.0, ClipWidth, 0.0, ClipHeight, NearClipDistance, FarClipDistance);
 }

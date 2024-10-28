@@ -7,7 +7,7 @@
 
 #include "Transform.h"
 
-enum class CameraProjectionMode
+enum class ECameraProjectionMode
 {
     Perspective = 0,
     Orthographic
@@ -17,8 +17,14 @@ class Camera : public Transform
 {
 public:
     Camera() = default;
+    explicit Camera(double Width = 800,
+                    double Height = 600,
+                    double Near = 0.1,
+                    double Far = 1000.0,
+                    ECameraProjectionMode Mode = ECameraProjectionMode::Perspective,
+                    double VerticalFOV = 45.0 );
 
-    void SetProjectionMode(const CameraProjectionMode& Mode);
+    void SetProjectionMode(const ECameraProjectionMode& Mode);
     void SetClipDimensions(const double Width,const double Height, const double Near, const double Far);
     void SetClipWidth(const double Width);
     void SetClipHeight(const double Height);
@@ -32,7 +38,7 @@ protected:
     void UpdateProjectionMatrix();
 
 private:
-    CameraProjectionMode ProjectionMode = CameraProjectionMode::Perspective;
+    ECameraProjectionMode ProjectionMode = ECameraProjectionMode::Perspective;
     double VerticalFieldOfView = 45.0;
     double ClipWidth = 800.0;
     double ClipHeight = 600.0;

@@ -5,8 +5,6 @@
 #include "Transform.h"
 
 #include <ColoredTriangle.h>
-#include <ColoredTriangle.h>
-#include <windows.h>
 
 const glm::vec3 Transform::WorldForward{0.0f, 0.0f, -1.0f};
 const glm::vec3 Transform::WorldRight{1.0f, 0.0f, 0.0f};
@@ -21,7 +19,7 @@ void Transform::RotateLocal(const glm::vec3 &AxisOfRotation, float Degrees)
 void Transform::RotateWorld(const glm::vec3 &AxisOfRotation, float Degrees)
 {
     glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
-    Translation = Translation * rotationQuat;
+    Translation = rotationQuat * Translation;// rotationQuat;
     Rotation = glm::normalize(rotationQuat * Rotation);
 }
 

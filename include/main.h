@@ -16,6 +16,7 @@
 #include "ShaderProgram.h"
 
 //LSYS
+#include "Camera.h"
 #include "lindenmayer.h"
 #include "Transform.h"
 #include "Turtle.h"
@@ -82,10 +83,12 @@ static int Width = DefaultWidth;
 static int Height = DefaultHeight;
 
 //projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
-glm::mat4 ProjectionMatrix = glm::mat4();
+//glm::mat4 ProjectionMatrix = glm::mat4();
 
 //view matrix, representing the viewers transform in space (camera transform)
-glm::mat4 ViewMatrix = glm::mat4();
+//glm::mat4 ViewMatrix = glm::mat4();
+
+Camera MainCamera(Width, Height);
 
 
 
@@ -96,13 +99,11 @@ glm::mat4 ViewProjectionMatrix = glm::mat4();
 double ViewDistance = 10.0;
 
 //Eye location at any given point in time
-glm::vec3 EyeLocation;
+//glm::vec3 EyeLocation;
 
 //center of the bounding box that constrains our model, calculated immediately after model creation
 glm::vec3 ModelCenter = glm::vec3(0);
 
-//up direction, always pointing in positive Y
-glm::vec3 UpDirection(0.0, 1.0, 0.0);
 
 //axes rendering
 const float AxisLength = 5.0f;

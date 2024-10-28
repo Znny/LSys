@@ -187,17 +187,15 @@ bool InitGraphics()
     //initialize L systems
     InitLSystems();
 
+    //place camera back and up, looking down at origin
+    glm::vec3 CameraOffset = glm::normalize(-Transform::WorldForward + Transform::WorldUp) * (float)ViewDistance;
+    MainCamera.SetLocation(CameraOffset);
+    MainCamera.AdjustPitch(-45.0);
+    glm::vec3 CurrentLocation = MainCamera.GetLocation();
+    LogInfo("Main Camera at X:%f Y:%f Z:%f", CurrentLocation.x, CurrentLocation.y, CurrentLocation.z);
 
-    //setup projection matrix
-    const double AspectRatio = (double) Width / (double) Height;
-    constexpr double zNear = 0.1;
-    constexpr double zFar = 1000.0;
 
-    ProjectionMatrix = glm::perspective(FoV_y, AspectRatio, zNear, zFar);
-
-    //set view location, will update every frame for now
-    ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0), UpDirection);
-    ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+    ViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ViewProjectionMatrix);
@@ -378,16 +376,11 @@ void Run()
     LogInfo("running complete.\n");
 }
 
-void Tick(double dt)
+void Tick(double DeltaTime)
 {
     ModelCenter = glm::vec3(0);
-    //update eye location. X / Z plane position is based on X rotation
-    //EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(glfwGetTime()) * 5.0, sin(XRotation) * ViewDistance) + ModelCenter;
-    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(YRotation) * ViewDistance, sin(XRotation) * ViewDistance) + ModelCenter;
-
-    //view matrix centers the camera at EyeLocation, looking at ModelCenter
-    ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
-    ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
+    MainCamera.RotateWorld(Transform::WorldUp, 10.0f * DeltaTime);
+    ViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 }
 
 void Render(double dt)
@@ -400,7 +393,6 @@ void Render(double dt)
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    ///*
 
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
