@@ -25,6 +25,8 @@ add_executable(
     src/Transform.cpp
     src/Turtle.cpp
     Renderable.h
+        include/Camera.h
+        src/Camera.cpp
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")
