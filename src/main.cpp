@@ -192,14 +192,12 @@ bool InitGraphics()
     MainCamera.SetLocation(CameraOffset);
     MainCamera.AdjustPitch(-45.0);
     glm::vec3 CurrentLocation = MainCamera.GetLocation();
-    LogInfo("Main Camera at X:%f Y:%f Z:%f", CurrentLocation.x, CurrentLocation.y, CurrentLocation.z);
-
+    LogInfo("Main Camera at X:%f Y:%f Z:%f\n", CurrentLocation.x, CurrentLocation.y, CurrentLocation.z);
 
     ViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ViewProjectionMatrix);
-
 
     {
         //create vertax array object for axes rendering
@@ -332,7 +330,6 @@ bool InitLSystems()
         //specify color layout, and enable vertex attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
-
     }
 
     return true;
@@ -385,14 +382,8 @@ void Tick(double DeltaTime)
 
 void Render(double dt)
 {
-    //const double Red = sin(ThisFrameTime);
-    //const double Green = sin(ThisFrameTime * 0.5);
-    //const double Blue = sin(ThisFrameTime * 0.25);
-
-    glClearColor(0.0, 0.0, 0.0, 1.0);
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
@@ -532,9 +523,7 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 
         XRotation = xDif * ManualRotationSpeed * 0.0175;
         YRotation = yDif * ManualRotationSpeed * 0.0175;
-
     }
-
 }
 
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods)

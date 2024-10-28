@@ -26,26 +26,22 @@
 //initialize the program, calling sub-init functions
 bool Init(int argc, char** argv);
 
+//sub-initialization functions
+bool InitGraphics();
+bool InitInput();
+bool InitLSystems();
+
 //print out program usage
 void Usage();
 
 //process program arguments and set variables for initialization
 void ProcessArguments(int argc, char** argv);
 
-//sub-initialization functions
-bool InitGraphics();
-
-bool InitInput();
-
-bool InitLSystems();
-
 //run the program, which loops updating time, ticking, rendering, and processing input
 void Run();
 
 void UpdateTiming(GLFWwindow* window);
-
 void Tick(double dt);
-
 void Render(double dt);
 
 //poll input events for callback processing
@@ -56,9 +52,7 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
 
 //mouse movement event callback function
 void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos);
-
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods);
-
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset);
 
 //window resize event callback function
@@ -82,15 +76,9 @@ constexpr int DefaultHeight = 1440;
 static int Width = DefaultWidth;
 static int Height = DefaultHeight;
 
-//projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
-//glm::mat4 ProjectionMatrix = glm::mat4();
-
 //view matrix, representing the viewers transform in space (camera transform)
-//glm::mat4 ViewMatrix = glm::mat4();
-
+//projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
 Camera MainCamera(Width, Height);
-
-
 
 //vp matrix representing camera transform and lens
 glm::mat4 ViewProjectionMatrix = glm::mat4();
@@ -98,18 +86,13 @@ glm::mat4 ViewProjectionMatrix = glm::mat4();
 //view distance from the center of the scene, defaults to 10 but calculated in InitGraphics
 double ViewDistance = 10.0;
 
-//Eye location at any given point in time
-//glm::vec3 EyeLocation;
-
 //center of the bounding box that constrains our model, calculated immediately after model creation
 glm::vec3 ModelCenter = glm::vec3(0);
-
 
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
 
-//glm::vec3 WorldUp = Transform::WorldForward;
 const glm::vec3 AxisVertices[6] =
 {
         SceneOrigin,
