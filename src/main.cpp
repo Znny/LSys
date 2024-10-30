@@ -218,14 +218,12 @@ bool InitGraphics()
         //specify vertex packing for colors, and enable the attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
-
     }
 
+    //set clear color
     constexpr double Red = 0.0f;
     constexpr double Green = 0.0f;
     constexpr double Blue = 0.0f;
-
-    //set clear color
     glClearColor(Red, Green, Blue, 1.0);
 
     return true;
@@ -252,7 +250,6 @@ bool InitLSystems()
     //set initial values for min and max
     glm::vec3 min = glm::vec3(FLOAT_MAX);
     glm::vec3 max = glm::vec3(FLOAT_MIN);
-    glm::vec3 center = glm::vec3(0.0);
 
     LogInfo("loading %d triangles\n", TriangleList->NumTriangles);
 
@@ -273,25 +270,18 @@ bool InitLSystems()
 
             //track min and max values for vertices in all three dimensions (finding bounding box)
             {
-                if (vert.x < min.x)
-                { min.x = vert.x; }
-                if (vert.y < min.y)
-                { min.y = vert.y; }
-                if (vert.z < min.z)
-                { min.z = vert.z; }
-
-                if (vert.x > max.x)
-                { max.x = vert.x; }
-                if (vert.y > max.y)
-                { max.y = vert.y; }
-                if (vert.z > max.z)
-                { max.z = vert.z; }
+                min.x = vert.x < min.x ? vert.x : min.x;
+                max.x = vert.x > max.x ? vert.x : max.x;
+                min.y = vert.y < min.y ? vert.y : min.y;
+                max.y = vert.y > max.y ? vert.y : max.y;
+                min.z = vert.z < min.z ? vert.z : min.z;
+                max.z = vert.z > max.z ? vert.z : max.z;
             }
         }
     }
 
     //calculate model center
-    ModelCenter = (min + max) / 2.0f;
+    const glm::vec3 ModelCenter = (min + max) / 2.0f;
 
     for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
     {
@@ -300,7 +290,8 @@ bool InitLSystems()
             VertLocations[TriangleIndex*3 + v] -= ModelCenter;
         }
     }
-    float Distance = glm::length(max.y - min.y);
+
+    const float Distance = glm::length(max.y - min.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
     ViewDistance = 15.0f;
 
@@ -374,10 +365,31 @@ void Run()
 
 void Tick(double DeltaTime)
 {
-    ModelCenter = glm::vec3(0);
-    MainCamera.RotateWorld(Transform::WorldUp, 10.0f * DeltaTime);
-    MainCamera.RotateAroundPoint(glm::vec3(0), MainCamera.GetRightVector(), 20.0f * DeltaTime);
     ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
+
+    if(bLMBHeld)
+    {
+        double xPos, yPos;
+        glfwGetCursorPos(MainWindow, &xPos, &yPos);
+
+        MainCamera.RotateWorld(MainCamera.GetRightVector(), PreviousMouseYPosition - yPos);
+        MainCamera.RotateWorld(MainCamera.GetUpVector(), PreviousMouseXPosition - xPos);
+
+        PreviousMouseXPosition = xPos;
+        PreviousMouseYPosition = yPos;
+    }
+    if(ManualYawInput != 0)
+    {
+        MainCamera.RotateWorld(MainCamera.GetUpVector(), ManualYawInput * ManualRotationSpeed * DeltaTime);
+    }
+    if(ManualPitchInput != 0)
+    {
+        MainCamera.RotateWorld(MainCamera.GetRightVector(), ManualPitchInput * ManualRotationSpeed * DeltaTime);
+    }
+    if(ManualRollInput != 0)
+    {
+        MainCamera.AdjustRoll(ManualRollInput * ManualRotationSpeed * DeltaTime);
+    }
 }
 
 void Render(double dt)
@@ -448,8 +460,7 @@ void ErrorCallback(int error, const char* description)
     LogError("Error %X: %s", error, description);
 }
 
-void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers)
-{
+void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers) {
     if (Window == nullptr)
     {
         return;
@@ -467,31 +478,78 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
     //LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
     //LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
 
-    if(Action == GLFW_PRESS || Action == GLFW_REPEAT)
+    if (KeyCode == GLFW_KEY_ESCAPE && Action == GLFW_PRESS)
     {
-        if (KeyCode == GLFW_KEY_ESCAPE)
+        bRequestedExit = true;
+    }
+    else if (KeyCode == GLFW_KEY_R)
+    {
+        PassthroughShaderProgram->Reload();
+    }
+    else if (KeyCode == GLFW_KEY_RIGHT)
+    {
+        if(Action == GLFW_PRESS)
         {
-            bRequestedExit = true;
+            ManualYawInput = 1.0;
         }
-        else if (KeyCode == GLFW_KEY_R)
+        else if (Action == GLFW_RELEASE)
         {
-            PassthroughShaderProgram->Reload();
+            ManualYawInput = 0.0;
         }
-        else if (KeyCode == GLFW_KEY_RIGHT)
+    }
+    else if (KeyCode == GLFW_KEY_LEFT)
+    {
+        if(Action == GLFW_PRESS)
         {
-            MainCamera.AdjustYaw(ManualRotationSpeed * DeltaTime);
+            ManualYawInput = -1.0;
         }
-        else if (KeyCode == GLFW_KEY_LEFT)
+        else if (Action == GLFW_RELEASE)
         {
-            MainCamera.AdjustYaw(-ManualRotationSpeed * DeltaTime);
+            ManualYawInput = 0.0;
         }
-        else if (KeyCode == GLFW_KEY_UP)
+    }
+    else if (KeyCode == GLFW_KEY_UP)
+    {
+        if(Action == GLFW_PRESS)
         {
-            YRotation += ManualRotationSpeed * 0.0175;
+            ManualPitchInput = 1.0;
         }
-        else if (KeyCode == GLFW_KEY_DOWN)
+        else if (Action == GLFW_RELEASE)
         {
-            YRotation -= ManualRotationSpeed * 0.0175;
+            ManualPitchInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_DOWN)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualPitchInput = -1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualPitchInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_Q)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualRollInput = 1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualRollInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_E)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualRollInput = -1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualRollInput = 0.0;
         }
     }
 }
@@ -502,9 +560,9 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
     {
         if (bLMBDown)
         {
-            XWhenLMBPressed = xPos;
-            YWhenLMBPressed = yPos;
             bLMBHeld = true;
+            PreviousMouseXPosition = xPos;
+            PreviousMouseYPosition = yPos;
         }
     }
     else
@@ -512,18 +570,7 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
         if (!bLMBDown)
         {
             bLMBHeld = false;
-            XWhenLMBPressed = 0.0;
-            YWhenLMBPressed = 0.0;
         }
-    }
-
-    if (bLMBHeld)
-    {
-        double xDif = xPos - XWhenLMBPressed;
-        double yDif = yPos - YWhenLMBPressed;
-
-        XRotation = xDif * ManualRotationSpeed * 0.0175;
-        YRotation = yDif * ManualRotationSpeed * 0.0175;
     }
 }
 
@@ -549,7 +596,9 @@ void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mo
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset)
 {
     const double ScaleOffset = 1.0;
-    ViewDistance += yOffset * ScaleOffset;
+    //ViewDistance += yOffset * ScaleOffset;
+
+    MainCamera.SetLocation(MainCamera.GetLocation() + MainCamera.GetForwardVector() * (float)(ViewDistance * 0.1 * yOffset));
 }
 
 void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight)

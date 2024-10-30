@@ -86,40 +86,34 @@ glm::mat4 ActiveViewProjectionMatrix = glm::mat4();
 //view distance from the center of the scene, defaults to 10 but calculated in InitGraphics
 double ViewDistance = 10.0;
 
-//center of the bounding box that constrains our model, calculated immediately after model creation
-glm::vec3 ModelCenter = glm::vec3(0);
-
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
 const glm::vec3 AxisVertices[6] =
 {
-        SceneOrigin,
-        Transform::WorldRight * AxisLength,
-        SceneOrigin,
-        Transform::WorldUp * AxisLength,
-        SceneOrigin,
-        Transform::WorldForward * AxisLength,
+        SceneOrigin, Transform::WorldRight * AxisLength,
+        SceneOrigin, Transform::WorldUp * AxisLength,
+        SceneOrigin, Transform::WorldForward * AxisLength,
 };
 glm::vec3 AxisColors[6] =
 {
-        glm::vec3(1.0, 0.0, 0.0),
-        glm::vec3(1.0, 0.0, 0.0),
-        glm::vec3(0.0, 1.0, 0.0),
-        glm::vec3(0.0, 1.0, 0.0),
-        glm::vec3(0.0, 0.0, 1.0),
-        glm::vec3(0.0, 0.0, 1.0),
+        glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 1.0),
 };
 
 //rotation speed in degrees per second
 double FixedRotationSpeed = 0.5;
-double ManualRotationSpeed = 5.0;
-double BoomDistance;
+double ManualRotationSpeed = 30.0;
 
 bool bLMBDown = false;
 bool bLMBHeld = false;
-double XWhenLMBPressed = 0.0;
-double YWhenLMBPressed = 0.0;
+double PreviousMouseXPosition,
+        PreviousMouseYPosition;
+//manual rotation inputs, gotten from key inputs
+float ManualYawInput = 0.0f;
+float ManualPitchInput = 0.0f;
+float ManualRollInput = 0.0f;
 
 //timing
 static double LastFrameTime = 0;
