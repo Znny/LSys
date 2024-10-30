@@ -194,11 +194,10 @@ bool InitGraphics()
     glm::vec3 CurrentLocation = MainCamera.GetLocation();
     LogInfo("Main Camera at X:%f Y:%f Z:%f\n", CurrentLocation.x, CurrentLocation.y, CurrentLocation.z);
 
-    ViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
-
+    //set active view projection matrix uniform
+    ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ViewProjectionMatrix);
-
+                       (GLfloat*) &ActiveViewProjectionMatrix);
     {
         //create vertax array object for axes rendering
         glGenVertexArrays(1, &AxesVAO);
@@ -377,7 +376,8 @@ void Tick(double DeltaTime)
 {
     ModelCenter = glm::vec3(0);
     MainCamera.RotateWorld(Transform::WorldUp, 10.0f * DeltaTime);
-    ViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
+    MainCamera.RotateAroundPoint(glm::vec3(0), MainCamera.GetRightVector(), 20.0f * DeltaTime);
+    ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 }
 
 void Render(double dt)
@@ -387,7 +387,7 @@ void Render(double dt)
 
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ViewProjectionMatrix);
+                       (GLfloat*) &ActiveViewProjectionMatrix);
 
     //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
@@ -466,6 +466,7 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
     //LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
     //LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
     //LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
+
     if(Action == GLFW_PRESS || Action == GLFW_REPEAT)
     {
         if (KeyCode == GLFW_KEY_ESCAPE)
@@ -478,11 +479,11 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
         }
         else if (KeyCode == GLFW_KEY_RIGHT)
         {
-            XRotation += ManualRotationSpeed * 0.0175;
+            MainCamera.AdjustYaw(ManualRotationSpeed * DeltaTime);
         }
         else if (KeyCode == GLFW_KEY_LEFT)
         {
-            XRotation -= ManualRotationSpeed * 0.0175;
+            MainCamera.AdjustYaw(-ManualRotationSpeed * DeltaTime);
         }
         else if (KeyCode == GLFW_KEY_UP)
         {

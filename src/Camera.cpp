@@ -55,7 +55,7 @@ const glm::mat4& Camera::GetProjectionMatrix() const
     return ProjectionMatrix;
 }
 
-glm::mat4 Camera::GetViewProjectionMatrix() const
+glm::mat4 Camera::GetViewProjectionMatrix()
 {
     return ProjectionMatrix * inverse(GetMatrix());
 }

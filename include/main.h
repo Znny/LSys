@@ -81,7 +81,7 @@ static int Height = DefaultHeight;
 Camera MainCamera(Width, Height);
 
 //vp matrix representing camera transform and lens
-glm::mat4 ViewProjectionMatrix = glm::mat4();
+glm::mat4 ActiveViewProjectionMatrix = glm::mat4();
 
 //view distance from the center of the scene, defaults to 10 but calculated in InitGraphics
 double ViewDistance = 10.0;
@@ -92,7 +92,6 @@ glm::vec3 ModelCenter = glm::vec3(0);
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
-
 const glm::vec3 AxisVertices[6] =
 {
         SceneOrigin,
@@ -102,7 +101,6 @@ const glm::vec3 AxisVertices[6] =
         SceneOrigin,
         Transform::WorldForward * AxisLength,
 };
-
 glm::vec3 AxisColors[6] =
 {
         glm::vec3(1.0, 0.0, 0.0),
@@ -113,12 +111,9 @@ glm::vec3 AxisColors[6] =
         glm::vec3(0.0, 0.0, 1.0),
 };
 
-//rotation speed in radians/s
+//rotation speed in degrees per second
 double FixedRotationSpeed = 0.5;
 double ManualRotationSpeed = 5.0;
-double XRotation = 0.0;
-double YRotation = 0.0;
-double ZRotation = 0.0;
 double BoomDistance;
 
 bool bLMBDown = false;

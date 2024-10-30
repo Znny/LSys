@@ -63,19 +63,19 @@ public:
     void AdjustRoll(float Angle = 90.0f);
 
     // Transformation Matrix
-    glm::mat4 GetMatrix() const
+    glm::mat4 GetMatrix()
     {
-        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
-        glm::mat4 rotationMatrix = glm::toMat4(Rotation);
-        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
-        //return scaleMatrix * rotationMatrix * translationMatrix;
-        return translationMatrix * rotationMatrix * scaleMatrix;
+        const glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
+        const glm::mat4 rotationMatrix = glm::toMat4(Rotation);
+        const glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
+        return Matrix = translationMatrix * rotationMatrix * scaleMatrix;
     }
 
 protected:
     glm::vec3 Translation = glm::vec3(0);
     glm::quat Rotation = glm::quat();
     glm::vec3 Scale = glm::vec3(1);
+    glm::mat4 Matrix = glm::mat4();
 };
 
 #endif//ifndef _TRANSFORM_INCLUDED

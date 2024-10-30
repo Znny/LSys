@@ -32,7 +32,7 @@ public:
     void SetClipFar(const double Far);
 
     const glm::mat4& GetProjectionMatrix() const;
-    glm::mat4 GetViewProjectionMatrix() const;
+    glm::mat4 GetViewProjectionMatrix();
 
 protected:
     void UpdateProjectionMatrix();
