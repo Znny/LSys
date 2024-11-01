@@ -105,6 +105,15 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             case '/':
                 AdjustRoll(-System.Angle);
             break;
+            case '[':
+                BranchStack.Push(*this);
+            break;
+            case ']':
+                *(Transform*)this = BranchStack.Pop();
+            break;
+            case '|':
+                AdjustYaw(180);
+            break;
         }
     }
 

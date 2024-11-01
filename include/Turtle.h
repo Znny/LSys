@@ -8,6 +8,7 @@
 #include "Transform.h"
 #include "ColoredTriangle.h"
 #include "lindenmayer.h"
+#include "Stack.h"
 
 
 /* Turtle class
@@ -25,8 +26,8 @@ public:
     //void RotateToVertical();
 
     //branch management
-    //void StartBranch();
-    //void CompleteBranch();
+    void StartBranch();
+    void CompleteBranch();
     //void CutOffRemainderOfBranch();
 
     //move and draw commands
@@ -47,6 +48,8 @@ public:
      * @return A list of ColoredTriangles
      */
     ColoredTriangleList* DrawSystem(LSystem& System);
+
+    Stack<Transform> BranchStack;
 };
 
 
