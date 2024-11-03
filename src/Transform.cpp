@@ -3,7 +3,6 @@
 //
 
 #include "Transform.h"
-
 #include <ColoredTriangle.h>
 
 const glm::vec3 Transform::WorldForward{0.0f, 0.0f, -1.0f};

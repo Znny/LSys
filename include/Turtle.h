@@ -1,7 +1,6 @@
 //
 // Created by Ryanc on 10/20/2024.
 //
-
 #ifndef TURTLE_H
 #define TURTLE_H
 
@@ -10,11 +9,10 @@
 #include "lindenmayer.h"
 #include "Stack.h"
 
-
 /* Turtle class
  * used for interpreting and drawing L-Systems
  */
-class Turtle : public Transform
+class Turtle
 {
 public:
     Turtle()=default;
@@ -49,7 +47,15 @@ public:
      */
     ColoredTriangleList* DrawSystem(LSystem& System);
 
-    Stack<Transform> BranchStack;
+    Transform CurrentTransform;
+    glm::vec3 CurrentColor = glm::vec3(1.0, 0.0, 0.0);
+
+    struct StateData
+    {
+        Transform CurrentTransform;
+        glm::vec3 CurrentColor;
+    };
+    Stack<StateData> BranchStack;
 };
 
 
