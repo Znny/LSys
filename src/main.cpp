@@ -2,6 +2,8 @@
 // Created by Ryan on 5/22/2024.
 //
 #include "main.h"
+#include <string.h>
+#include "logging.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -176,31 +178,26 @@ bool InitGraphics()
     PassthroughFragmentShader->Compile();
 
     //attach shaders to the shader program
-    PassthroughShaderProgram->AttachShaderObject(PassthroughVertexShader);
-    PassthroughShaderProgram->AttachShaderObject(PassthroughFragmentShader);
+    PassthroughShaderProgram->Attach(PassthroughVertexShader);
+    PassthroughShaderProgram->Attach(PassthroughFragmentShader);
 
     //link the program
-    PassthroughShaderProgram->LinkShaderProgram();
+    PassthroughShaderProgram->Link();
 
     //initialize L systems
     InitLSystems();
 
+    //place camera back and up, looking down at origin
+    glm::vec3 CameraOffset = glm::normalize(-Transform::WorldForward + Transform::WorldUp) * (float)ViewDistance;
+    MainCamera.SetLocation(CameraOffset);
+    MainCamera.AdjustPitch(-45.0);
+    glm::vec3 CurrentLocation = MainCamera.GetLocation();
+    LogInfo("Main Camera at X:%f Y:%f Z:%f\n", CurrentLocation.x, CurrentLocation.y, CurrentLocation.z);
 
-    //setup projection matrix
-    const double AspectRatio = (double) Width / (double) Height;
-    constexpr double zNear = 0.1;
-    constexpr double zFar = 1000.0;
-
-    ProjectionMatrix = glm::perspective(FoV_y, AspectRatio, zNear, zFar);
-
-    //set view location, will update every frame for now
-    ViewMatrix = glm::lookAt(EyeLocation, glm::vec3(0.0), UpDirection);
-    ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
-
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ViewProjectionMatrix);
-
-
+    //set active view projection matrix uniform
+    ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+                       (GLfloat*) &ActiveViewProjectionMatrix);
     {
         //create vertax array object for axes rendering
         glGenVertexArrays(1, &AxesVAO);
@@ -221,14 +218,12 @@ bool InitGraphics()
         //specify vertex packing for colors, and enable the attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
-
     }
 
+    //set clear color
     constexpr double Red = 0.0f;
     constexpr double Green = 0.0f;
     constexpr double Blue = 0.0f;
-
-    //set clear color
     glClearColor(Red, Green, Blue, 1.0);
 
     return true;
@@ -255,7 +250,6 @@ bool InitLSystems()
     //set initial values for min and max
     glm::vec3 min = glm::vec3(FLOAT_MAX);
     glm::vec3 max = glm::vec3(FLOAT_MIN);
-    glm::vec3 center = glm::vec3(0.0);
 
     LogInfo("loading %d triangles\n", TriangleList->NumTriangles);
 
@@ -276,27 +270,28 @@ bool InitLSystems()
 
             //track min and max values for vertices in all three dimensions (finding bounding box)
             {
-                if (vert.x < min.x)
-                { min.x = vert.x; }
-                if (vert.y < min.y)
-                { min.y = vert.y; }
-                if (vert.z < min.z)
-                { min.z = vert.z; }
-
-                if (vert.x > max.x)
-                { max.x = vert.x; }
-                if (vert.y > max.y)
-                { max.y = vert.y; }
-                if (vert.z > max.z)
-                { max.z = vert.z; }
+                min.x = vert.x < min.x ? vert.x : min.x;
+                max.x = vert.x > max.x ? vert.x : max.x;
+                min.y = vert.y < min.y ? vert.y : min.y;
+                max.y = vert.y > max.y ? vert.y : max.y;
+                min.z = vert.z < min.z ? vert.z : min.z;
+                max.z = vert.z > max.z ? vert.z : max.z;
             }
         }
     }
 
     //calculate model center
-    ModelCenter = (min + max) / 2.0f;
+    const glm::vec3 ModelCenter = (min + max) / 2.0f;
 
-    float Distance = glm::length(max.y - min.y);
+    for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
+    {
+        for(int v = 0; v < 3; v++)
+        {
+            VertLocations[TriangleIndex*3 + v] -= ModelCenter;
+        }
+    }
+
+    const float Distance = glm::length(max.y - min.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
     ViewDistance = 15.0f;
 
@@ -325,7 +320,6 @@ bool InitLSystems()
         //specify color layout, and enable vertex attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
-
     }
 
     return true;
@@ -369,14 +363,33 @@ void Run()
     LogInfo("running complete.\n");
 }
 
-void Tick(double dt)
+void Tick(double DeltaTime)
 {
-    //update eye location. X / Z plane position is based on X rotation
-    EyeLocation = glm::vec3(cos(XRotation) * ViewDistance, 0.0 + cos(glfwGetTime()) * 5.0, sin(XRotation) * ViewDistance) + ModelCenter;
+    ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 
-    //view matrix centers the camera at EyeLocation, looking at ModelCenter
-    ViewMatrix = glm::lookAt(EyeLocation, ModelCenter, UpDirection);
-    ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
+    if(bLMBHeld)
+    {
+        double xPos, yPos;
+        glfwGetCursorPos(MainWindow, &xPos, &yPos);
+
+        MainCamera.RotateWorld(MainCamera.GetRightVector(), PreviousMouseYPosition - yPos);
+        MainCamera.RotateWorld(MainCamera.GetUpVector(), PreviousMouseXPosition - xPos);
+
+        PreviousMouseXPosition = xPos;
+        PreviousMouseYPosition = yPos;
+    }
+    if(ManualYawInput != 0)
+    {
+        MainCamera.RotateWorld(MainCamera.GetUpVector(), ManualYawInput * ManualRotationSpeed * DeltaTime);
+    }
+    if(ManualPitchInput != 0)
+    {
+        MainCamera.RotateWorld(MainCamera.GetRightVector(), ManualPitchInput * ManualRotationSpeed * DeltaTime);
+    }
+    if(ManualRollInput != 0)
+    {
+        MainCamera.AdjustRoll(ManualRollInput * ManualRotationSpeed * DeltaTime);
+    }
 }
 
 void Render(double dt)
@@ -385,13 +398,13 @@ void Render(double dt)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //update uniform variables, in this case just ViewProjectionMatrix
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ViewProjectionMatrix);
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+                       (GLfloat*) &ActiveViewProjectionMatrix);
 
     //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
         //enable the passthrough shader program
-        glUseProgram(PassthroughShaderProgram->GetProgramID());
+        glUseProgram(PassthroughShaderProgram->ProgramID);
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
@@ -401,6 +414,7 @@ void Render(double dt)
         glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
+    //*/
 
     //swap front and back buffers
     glfwSwapBuffers(MainWindow);
@@ -446,8 +460,7 @@ void ErrorCallback(int error, const char* description)
     LogError("Error %X: %s", error, description);
 }
 
-void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers)
-{
+void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers) {
     if (Window == nullptr)
     {
         return;
@@ -461,48 +474,95 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
               ? "GLFW_RELEASE"
               : "GLFW_REPEAT";
 
-    ///LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
-    ///LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
-    ///LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
+    //LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
+    //LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
+    //LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
 
-    if (KeyCode == GLFW_KEY_ESCAPE)
+    if (KeyCode == GLFW_KEY_ESCAPE && Action == GLFW_PRESS)
     {
         bRequestedExit = true;
     }
     else if (KeyCode == GLFW_KEY_R)
     {
-        //todo: make this reload ALL shaders
-        PassthroughShaderProgram->ReloadShaderObjects();
+        PassthroughShaderProgram->Reload();
     }
     else if (KeyCode == GLFW_KEY_RIGHT)
     {
-        //todo: increase which iteration we're rendering,
-        //todo: if it's more than GeneratedIterations, create it
-        //todo: update what is rendered
+        if(Action == GLFW_PRESS)
+        {
+            ManualYawInput = 1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualYawInput = 0.0;
+        }
     }
     else if (KeyCode == GLFW_KEY_LEFT)
     {
-        //todo: same as above, but decrement iteration
-        //todo: if the iteration < 0, ignore the attempted change
+        if(Action == GLFW_PRESS)
+        {
+            ManualYawInput = -1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualYawInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_UP)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualPitchInput = 1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualPitchInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_DOWN)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualPitchInput = -1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualPitchInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_Q)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualRollInput = 1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualRollInput = 0.0;
+        }
+    }
+    else if (KeyCode == GLFW_KEY_E)
+    {
+        if(Action == GLFW_PRESS)
+        {
+            ManualRollInput = -1.0;
+        }
+        else if (Action == GLFW_RELEASE)
+        {
+            ManualRollInput = 0.0;
+        }
     }
 }
 
-/** MouseMoveEventCallback
- *  Callback which handles mouse move events
- * @param ActiveWindow - active window which provides x/y context for the mouse
- * @param xPos - x position of the mouse, in pixels?
- * @param yPos - y position of the mouse, in pixels?
- */
-void MouseMoveEventCallback(GLFWwindow* ActiveWindow, double xPos, double yPos)
+void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 {
-    //LogDebug("xPos=%lf\t\t\tyPos=%lf\n", xPos, yPos);
     if (!bLMBHeld)
     {
         if (bLMBDown)
         {
-            XWhenLMBPressed = xPos;
-            YWhenLMBPressed = yPos;
             bLMBHeld = true;
+            PreviousMouseXPosition = xPos;
+            PreviousMouseYPosition = yPos;
         }
     }
     else
@@ -510,21 +570,8 @@ void MouseMoveEventCallback(GLFWwindow* ActiveWindow, double xPos, double yPos)
         if (!bLMBDown)
         {
             bLMBHeld = false;
-            XWhenLMBPressed = 0.0;
-            YWhenLMBPressed = 0.0;
         }
     }
-
-    if (bLMBHeld)
-    {
-        double xDif = xPos - XWhenLMBPressed;
-        double yDif = yPos - YWhenLMBPressed;
-
-        XRotation = xDif * ManualRotationSpeed * 0.0175;
-        YRotation = yDif * ManualRotationSpeed * 0.0175;
-
-    }
-
 }
 
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods)
@@ -549,7 +596,9 @@ void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mo
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset)
 {
     const double ScaleOffset = 1.0;
-    ViewDistance += yOffset * ScaleOffset;
+    //ViewDistance += yOffset * ScaleOffset;
+
+    MainCamera.SetLocation(MainCamera.GetLocation() + MainCamera.GetForwardVector() * (float)(ViewDistance * 0.1 * yOffset));
 }
 
 void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight)

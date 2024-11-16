@@ -12,20 +12,24 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-///std
-#include <cstdlib>
-#include <cstdio>
-
 ///GLBP
 #include "ShaderProgram.h"
+
+//LSYS
+#include "Camera.h"
 #include "lindenmayer.h"
-#include "logging.hpp"
-#include "LSystemAlphabet.h"
+#include "Transform.h"
+#include "Turtle.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //initialize the program, calling sub-init functions
 bool Init(int argc, char** argv);
+
+//sub-initialization functions
+bool InitGraphics();
+bool InitInput();
+bool InitLSystems();
 
 //print out program usage
 void Usage();
@@ -33,20 +37,11 @@ void Usage();
 //process program arguments and set variables for initialization
 void ProcessArguments(int argc, char** argv);
 
-//sub-initialization functions
-bool InitGraphics();
-
-bool InitInput();
-
-bool InitLSystems();
-
 //run the program, which loops updating time, ticking, rendering, and processing input
 void Run();
 
 void UpdateTiming(GLFWwindow* window);
-
 void Tick(double dt);
-
 void Render(double dt);
 
 //poll input events for callback processing
@@ -57,9 +52,7 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
 
 //mouse movement event callback function
 void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos);
-
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods);
-
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset);
 
 //window resize event callback function
@@ -83,66 +76,44 @@ constexpr int DefaultHeight = 1440;
 static int Width = DefaultWidth;
 static int Height = DefaultHeight;
 
-//projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
-glm::mat4 ProjectionMatrix = glm::mat4();
-
 //view matrix, representing the viewers transform in space (camera transform)
-glm::mat4 ViewMatrix = glm::mat4();
+//projection matrix, representing how objects in space are projected onto the screen, i.e. camera lens
+Camera MainCamera(Width, Height);
 
 //vp matrix representing camera transform and lens
-glm::mat4 ViewProjectionMatrix = glm::mat4();
+glm::mat4 ActiveViewProjectionMatrix = glm::mat4();
 
 //view distance from the center of the scene, defaults to 10 but calculated in InitGraphics
 double ViewDistance = 10.0;
 
-//Eye location at any given point in time
-glm::vec3 EyeLocation;
-
-//center of the bounding box that constrains our model, calculated immediately after model creation
-glm::vec3 ModelCenter = glm::vec3(0);
-
-//up direction, always pointing in positive Y
-glm::vec3 UpDirection(0.0, 1.0, 0.0);
-
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
-const glm::vec3 SceneForward(1.0, 0.0, 0.0);
-const glm::vec3 SceneRight(0.0, 1.0, 0.0);
-const glm::vec3 SceneUp(0.0, 0.0, 1.0);
-
-
-glm::vec3 AxisVertices[6] =
-        {
-                SceneOrigin,
-                SceneForward * AxisLength,
-                SceneOrigin,
-                SceneRight * AxisLength,
-                SceneOrigin,
-                SceneUp * AxisLength
-        };
-
+const glm::vec3 AxisVertices[6] =
+{
+        SceneOrigin, Transform::WorldRight * AxisLength,
+        SceneOrigin, Transform::WorldUp * AxisLength,
+        SceneOrigin, Transform::WorldForward * AxisLength,
+};
 glm::vec3 AxisColors[6] =
-        {
-                SceneForward,
-                SceneForward,
-                SceneRight,
-                SceneRight,
-                SceneUp,
-                SceneUp
-        };
+{
+        glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 1.0),
+};
 
-//rotation speed in radians/s
+//rotation speed in degrees per second
 double FixedRotationSpeed = 0.5;
-double ManualRotationSpeed = 5.0;
-double XRotation = 0.0;
-double YRotation = 0.0;
-double ZRotation = 0.0;
+double ManualRotationSpeed = 30.0;
 
 bool bLMBDown = false;
 bool bLMBHeld = false;
-double XWhenLMBPressed = 0.0;
-double YWhenLMBPressed = 0.0;
+double PreviousMouseXPosition,
+        PreviousMouseYPosition;
+//manual rotation inputs, gotten from key inputs
+float ManualYawInput = 0.0f;
+float ManualPitchInput = 0.0f;
+float ManualRollInput = 0.0f;
 
 //timing
 static double LastFrameTime = 0;

@@ -22,7 +22,11 @@ add_executable(
     src/ShaderProgram.cpp
     src/logging.cpp
     src/lindenmayer.cpp
-        Renderable.h
+    src/Transform.cpp
+    src/Turtle.cpp
+    Renderable.h
+        include/Camera.h
+        src/Camera.cpp
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")
