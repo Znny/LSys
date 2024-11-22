@@ -4,7 +4,7 @@ Turtle interpretation of symbols:
   F : Move forward and draw a line
   f : Move forward without drawing a line
   + : Turn Right
-  - : Turn Left
+  + - : Turn Left
   ^ : pitch up
   & : pitch down
   \ : roll left
