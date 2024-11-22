@@ -16,17 +16,16 @@ include_directories(include/KHR)
 
 add_executable(
     LSYS
-    src/glad.c
+        src/rendering/glad.c
     src/main.cpp
-    src/ShaderObject.cpp
-    src/ShaderProgram.cpp
-    src/logging.cpp
-    src/lindenmayer.cpp
-    src/Transform.cpp
-    src/Turtle.cpp
-    Renderable.h
-        include/Camera.h
-        src/Camera.cpp
+        src/rendering/ShaderObject.cpp
+        src/rendering/ShaderProgram.cpp
+        src/utility/logging.cpp
+        src/lindenmayer/lindenmayer.cpp
+        src/utility/Transform.cpp
+        src/utility/Turtle.cpp
+        include/rendering/Camera.h
+        src/rendering/Camera.cpp
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")

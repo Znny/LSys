@@ -2,8 +2,8 @@
 // Created by Ryanc on 10/10/2024.
 //
 
-#include "Transform.h"
-#include <ColoredTriangle.h>
+#include "utility/Transform.h"
+#include "rendering/ColoredTriangle.h"
 
 const glm::vec3 Transform::WorldForward{0.0f, 0.0f, -1.0f};
 const glm::vec3 Transform::WorldRight{1.0f, 0.0f, 0.0f};

@@ -40,4 +40,4 @@ extern LoggingFunction_t GetLoggingFunction(ELogSeverity Severity);
 extern void DefaultEnabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 extern void DefaultDisabledLoggingFunction(FILE* fp, ELogSeverity Severity, const char* fmt, ...);
 
-#include <logging.inl>
+#include "utility/logging.inl"

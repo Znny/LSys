@@ -3,7 +3,7 @@
 //
 #include "main.h"
 #include <string.h>
-#include "logging.hpp"
+#include "utility/logging.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,8 +170,8 @@ bool InitGraphics()
 
     //create shader objects
     PassthroughShaderProgram = new ShaderProgram();
-    PassthroughVertexShader = new ShaderObject("resource/passthrough.vs", GL_VERTEX_SHADER);
-    PassthroughFragmentShader = new ShaderObject("resource/passthrough.fs", GL_FRAGMENT_SHADER);
+    PassthroughVertexShader = new ShaderObject("resource/shader/passthrough.vs", GL_VERTEX_SHADER);
+    PassthroughFragmentShader = new ShaderObject("resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
 
     //compile vert and frag shaders
     PassthroughVertexShader->Compile();

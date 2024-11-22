@@ -2,8 +2,8 @@
 // Created by ryan on 5/26/24.
 //
 
-#include "ShaderProgram.h"
-#include "logging.hpp"
+#include "rendering/ShaderProgram.h"
+#include "utility/logging.hpp"
 #include <cstring>
 #include <stdio.h>
 

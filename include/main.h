@@ -13,13 +13,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 ///GLBP
-#include "ShaderProgram.h"
+#include "rendering/ShaderProgram.h"
 
 //LSYS
-#include "Camera.h"
-#include "lindenmayer.h"
-#include "Transform.h"
-#include "Turtle.h"
+#include "rendering/Camera.h"
+#include "lindenmayer/lindenmayer.h"
+#include "utility/Transform.h"
+#include "utility/Turtle.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

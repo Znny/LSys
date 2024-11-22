@@ -2,10 +2,10 @@
 // Created by ryan on 5/31/24.
 //
 
-#include "lindenmayer.h"
+#include "lindenmayer/lindenmayer.h"
 #include <cstring>
 #include "stdio.h"
-#include "logging.hpp"
+#include "utility/logging.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 LS_RewritingRule::LS_RewritingRule(char c, const char *R)

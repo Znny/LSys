@@ -2,7 +2,7 @@
 // Created by ryan on 5/26/24.
 //
 
-#include "ShaderObject.h"
+#include "rendering/ShaderObject.h"
 
 //FILE IO
 #include <cstdio>
@@ -10,8 +10,8 @@
 //memory management
 #include <cstdlib>
 #include <cstring>
-#include "logging.hpp"
-#include "ShaderProgram.h"
+#include "utility/logging.hpp"
+#include "rendering/ShaderProgram.h"
 
 namespace LSYS
 {
