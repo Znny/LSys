@@ -14,18 +14,31 @@ include_directories(include/glm/gtx)
 include_directories(include/glm/simd)
 include_directories(include/KHR)
 
+# Include Dear ImGui directories
+include_directories(
+        lib/imgui
+        lib/imgui/backends
+)
+
+
 add_executable(
     LSYS
         src/rendering/glad.c
-    src/main.cpp
+        src/main.cpp
         src/rendering/ShaderObject.cpp
         src/rendering/ShaderProgram.cpp
         src/utility/logging.cpp
         src/lindenmayer/lindenmayer.cpp
         src/utility/Transform.cpp
         src/utility/Turtle.cpp
-        include/rendering/Camera.h
+        src/UI/UIManager.cpp
         src/rendering/Camera.cpp
+        lib/imgui/imgui.cpp
+        lib/imgui/imgui_draw.cpp
+        lib/imgui/imgui_widgets.cpp
+        lib/imgui/imgui_tables.cpp
+        lib/imgui/backends/imgui_impl_opengl3.cpp
+        lib/imgui/backends/imgui_impl_glfw.cpp
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")

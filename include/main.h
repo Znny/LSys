@@ -21,6 +21,8 @@
 #include "utility/Transform.h"
 #include "utility/Turtle.h"
 
+//UI Manager
+#include "UI/UIManager.h"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //initialize the program, calling sub-init functions
@@ -155,3 +157,4 @@ ShaderProgram* PassthroughShaderProgram;
 ShaderObject* PassthroughVertexShader;
 ShaderObject* PassthroughFragmentShader;
 
+UIManager UI;

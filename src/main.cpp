@@ -4,6 +4,11 @@
 #include "main.h"
 #include <string.h>
 #include "utility/logging.hpp"
+#include "../lib/imgui/imgui.h"
+#include "../lib/imgui/backends/imgui_impl_glfw.h"
+#include "../lib/imgui/backends/imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h> // For GLFW window
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -226,6 +231,9 @@ bool InitGraphics()
     constexpr double Blue = 0.0f;
     glClearColor(Red, Green, Blue, 1.0);
 
+    // Initialize ImGui
+    UI.Init(MainWindow);
+
     return true;
 }
 
@@ -356,8 +364,8 @@ void Run()
     {
         UpdateTiming(MainWindow);
         Tick(DeltaTime);
-        Render(DeltaTime);
         ProcessInput();
+        Render(DeltaTime);
     }
 
     LogInfo("running complete.\n");
@@ -396,6 +404,21 @@ void Render(double dt)
 {
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Start ImGui frame
+    UI.BeginFrame();
+
+    // Create your UI
+    ImGui::Begin("Example Window");
+    ImGui::Text("Hello, world!");
+    ImGui::End();
+
+    UI.DrawPrimaryMenu();
+
+    // Render ImGui
+    UI.EndFrame();
+
+
 
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
@@ -438,6 +461,9 @@ void Cleanup()
 {
     LogInfo("cleaning up...\n");
 
+    //cleanup imgui
+    UI.Shutdown();
+
     //destroy window if one exists
     if (MainWindow != nullptr)
     {
@@ -460,11 +486,22 @@ void ErrorCallback(int error, const char* description)
     LogError("Error %X: %s", error, description);
 }
 
-void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers) {
+void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers)
+{
+    //call ImGui callback
+    ImGui_ImplGlfw_KeyCallback(Window, KeyCode, ScanCode, Action, Modifiers);
+
+    //prevent further input processing if input being captured by imgui
+    if(ImGui::GetIO().WantCaptureKeyboard)
+    {
+        return;
+    }
+
     if (Window == nullptr)
     {
         return;
     }
+
 
     //set action string
     const char* ActionString =
@@ -556,6 +593,15 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
 
 void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 {
+    //call ImGui callback
+    ImGui_ImplGlfw_CursorPosCallback(Window, xPos, yPos);
+
+    //prevent further input processing if input being captured by imgui
+    if(ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
+
     if (!bLMBHeld)
     {
         if (bLMBDown)
@@ -576,6 +622,9 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
 
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods)
 {
+    //call ImGui callback
+    ImGui_ImplGlfw_MouseButtonCallback(Window, button, action, mods);
+
     //only care about LMB
     if (button != GLFW_MOUSE_BUTTON_LEFT)
     {
@@ -595,6 +644,9 @@ void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mo
 
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset)
 {
+    //call ImGui callback
+    ImGui_ImplGlfw_ScrollCallback(Window, xOffset, yOffset);
+
     const double ScaleOffset = 1.0;
     //ViewDistance += yOffset * ScaleOffset;
 
