@@ -18,10 +18,7 @@ namespace LSYS
             //explicit needed to avoid unnecessary implicit conversions
             explicit ShaderProgram(const char* FilenameToLoad = nullptr);
 
-            GLuint GetProgramID() const
-            {
-                return ProgramID;
-            };
+            GLuint GetProgramID() const;
 
             /** AttachShaderObject
              * @param Object - the shader object to attach to the shader program
@@ -42,8 +39,6 @@ namespace LSYS
              * ReloadShaderObjects all shader objects
              */
             void ReloadShaderObjects();
-
-            GLuint GetProgramID() const;
 
         protected:
             //name of the shader program
