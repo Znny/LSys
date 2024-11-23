@@ -14,6 +14,7 @@ namespace LSYS
 
         class ShaderObject
         {
+            friend class ShaderProgram;
         public:
             explicit ShaderObject(const char* filename = nullptr, GLenum shaderType = GL_VERTEX_SHADER);
 
@@ -23,6 +24,7 @@ namespace LSYS
 
             bool Compile();
 
+        protected:
             //openGL shader object ID, used for bindings and attachment
             GLuint ObjectID;
 

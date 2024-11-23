@@ -14,6 +14,7 @@ namespace LSYS
         class ShaderProgram
         {
         public:
+
             //explicit needed to avoid unnecessary implicit conversions
             explicit ShaderProgram(const char* FilenameToLoad = nullptr);
 
@@ -42,13 +43,9 @@ namespace LSYS
              */
             void ReloadShaderObjects();
 
-            /** ReProcess
-             *  ReProcess(load and compile) all attached shader objects
-             *  followed by re-linking the program
-             */
-            void ReProcess();
+            GLuint GetProgramID() const;
 
-        private:
+        protected:
             //name of the shader program
             char* ProgramName;
 

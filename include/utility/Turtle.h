@@ -5,8 +5,8 @@
 #define TURTLE_H
 
 #include "Transform.h"
-#include "ColoredTriangle.h"
-#include "lindenmayer.h"
+#include "rendering/ColoredTriangle.h"
+#include "lindenmayer/lindenmayer.h"
 #include "Stack.h"
 
 /* Turtle class

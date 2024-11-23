@@ -1,4 +1,4 @@
-#include "logging.hpp"
+#include "utility/logging.hpp"
 
 //color initialization is currently only needed when running on windows
 #ifdef WIN32

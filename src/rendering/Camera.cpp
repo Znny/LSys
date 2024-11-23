@@ -2,7 +2,7 @@
 // Created by Ryanc on 10/28/2024.
 //
 
-#include "Camera.h"
+#include "rendering/Camera.h"
 
 Camera::Camera(double Width, double Height, double Near, double Far, ECameraProjectionMode Mode, double VerticalFOV)
 {
