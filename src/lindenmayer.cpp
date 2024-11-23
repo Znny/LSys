@@ -164,3 +164,20 @@ void LSystem::LoadFromFile(const char* Filename)
     fclose(fp);
 }
 
+void LSystem::AddRuleFromString(const char* String)
+{
+    if(String == nullptr)
+    {
+        return;
+    }
+    const int ColonOffset = strstr(String, ":") - String;
+    if(ColonOffset < 0)
+    {
+        return;
+    }
+
+    char* FullString = strdup(String);
+    FullString[ColonOffset] = '\0';
+    AddRule(*FullString, FullString+ColonOffset+1);
+}
+

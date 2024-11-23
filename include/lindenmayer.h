@@ -33,6 +33,13 @@ public:
      */
     void AddRule(char character, const char* RewrittenString);
 
+    /** AddRuleFromString
+     * Adds a rewriting rule from the given string. The provided string should be in the format C:RWRULE,
+     * where C is the character we're creating a rule for, and RWRULE is the string which replaces it.
+     * IF a rule already exists, it will be overwritten
+     */
+     void AddRuleFromString(const char* String);
+
     /** SetAxiom
      * Sets the initial string, or starting point, of the L-System
      * @param NewAxiom - the new axiom string
