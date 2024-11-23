@@ -71,7 +71,7 @@ void ProcessArguments(int argc, char** argv)
         {
             if ((i + 1) < argc)
             {
-                ActiveSystem.Iterations = strtol(argv[i + 1], nullptr, 10);
+                ActiveSystem.SetIterations(strtol(argv[i + 1], nullptr, 10));
                 i++;
             }
         }
@@ -79,14 +79,14 @@ void ProcessArguments(int argc, char** argv)
         {
             if ((i + 1) < argc)
             {
-                ActiveSystem.Angle = glm::radians(strtof(argv[i + 1], nullptr));
+                ActiveSystem.SetAngle(strtof(argv[i + 1], nullptr));
             }
         }
         else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--distance") == 0)
         {
             if ((i + 1) < argc)
             {
-                ActiveSystem.Distance = strtof(argv[i + 1], nullptr);
+                ActiveSystem.SetDistance(strtof(argv[i + 1], nullptr));
             }
         }
         else if (strcmp(argv[i], "-L") == 0 || strcmp(argv[i], "--load") == 0)
@@ -201,7 +201,7 @@ bool InitGraphics()
 
     //set active view projection matrix uniform
     ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ActiveViewProjectionMatrix);
     {
         //create vertax array object for axes rendering
@@ -413,7 +413,7 @@ void Render(double dt)
     ImGui::Text("Hello, world!");
     ImGui::End();
 
-    UI.DrawPrimaryMenu();
+    UI.DrawPrimaryMenu(&ActiveSystem);
 
     // Render ImGui
     UI.EndFrame();
@@ -421,13 +421,13 @@ void Render(double dt)
 
 
     //update uniform variables, in this case just ViewProjectionMatrix
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->ProgramID, "ViewProjectionMatrix"), 1, GL_FALSE,
+    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ActiveViewProjectionMatrix);
 
     //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
         //enable the passthrough shader program
-        glUseProgram(PassthroughShaderProgram->ProgramID);
+        glUseProgram(PassthroughShaderProgram->GetProgramID());
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);

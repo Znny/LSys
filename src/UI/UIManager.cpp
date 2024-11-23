@@ -2,6 +2,9 @@
 // Created by Ryanc on 11/22/2024.
 //
 #include "UI/UIManager.h"
+
+#include <lindenmayer/lindenmayer.h>
+
 #include "../lib/imgui/imgui.h"
 #include "../lib/imgui/backends/imgui_impl_glfw.h"
 #include "../lib/imgui/backends/imgui_impl_opengl3.h"
@@ -35,37 +38,40 @@ void UIManager::Shutdown()
     ImGui::DestroyContext();
 }
 
-void UIManager::DrawPrimaryMenu()
+void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
 {
     ImGui::Begin("L-System Configuration"); // Start a new window
 
     // System Name
-    static char systemName[128] = "Default System";
-    ImGui::InputText("System Name", systemName, IM_ARRAYSIZE(systemName));
+    static char systemName[64] = "Default System";
+    ImGui::InputText("System Name", ActiveSystem->Name, IM_ARRAYSIZE(systemName));
 
     // Real-time Update Checkbox
-    static bool realTimeUpdate = true;
-    ImGui::Checkbox("Real-time Update", &realTimeUpdate);
+    ImGui::Checkbox("Real-time Update", &bUpdateInRealTime);
 
+    bool bSignificantChangeDetected = false;
     // Iteration Count
-    static int iterationCount = 5;
-    ImGui::SliderInt("Iteration Count", &iterationCount, 0, 10);
+    bSignificantChangeDetected |= ImGui::SliderInt("Iteration Count", &ActiveSystem->Iterations, 0, 10);
 
     // Angle
-    static float angle = 25.0f;
-    ImGui::SliderFloat("Angle", &angle, 0.0f, 360.0f);
+    bSignificantChangeDetected |= ImGui::SliderFloat("Angle", &ActiveSystem->Angle, 0.0f, 360.0f);
 
     // Distance
-    static float distance = 1.0f;
-    ImGui::SliderFloat("Distance", &distance, 0.1f, 10.0f);
+    bSignificantChangeDetected |= ImGui::SliderFloat("Distance", &ActiveSystem->Distance, 0.1f, 10.0f);
+
+    static float v2[2] = {10.f, 100.f};
+    ImGui::SliderFloat2("EXAMPLE float2", v2, -100.f, 200.f);
 
     // Axiom
-    static char axiom[128] = "F";
-    ImGui::InputText("Axiom", axiom, IM_ARRAYSIZE(axiom));
+    static char axiom[64] = "F";
+    bSignificantChangeDetected |= ImGui::InputText("Axiom", ActiveSystem->Axiom, IM_ARRAYSIZE(axiom));
 
     // Rewriting Rules
     static char rules[1024] = "F -> FF+[+F-F-F]-[-F+F+F]";
-    ImGui::InputTextMultiline("Rewriting Rules", rules, IM_ARRAYSIZE(rules), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 10));
+    if(ImGui::InputTextMultiline("Rewriting Rules", rules, IM_ARRAYSIZE(rules), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 10)))
+    {
+
+    }
 
     // Color Palette (Placeholder)
     ImGui::Text("Color Palette: [Placeholder]");

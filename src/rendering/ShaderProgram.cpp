@@ -5,7 +5,6 @@
 #include "rendering/ShaderProgram.h"
 #include "utility/logging.hpp"
 #include <cstring>
-#include <stdio.h>
 
 namespace LSYS
 {
@@ -98,6 +97,10 @@ namespace LSYS
             }
         }
 
+        GLuint ShaderProgram::GetProgramID() const
+        {
+            return ProgramID;
+        }
     }
 
 }

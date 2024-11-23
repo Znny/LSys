@@ -19,10 +19,15 @@ LS_RewritingRule::LS_RewritingRule(char c, const char *R)
  */
 LSystem::LSystem()
 {
-    char* NewAxiom = strdup("F--F--F");
-    SetAxiom(NewAxiom);
+    SetName("Default");
+    SetAxiom("F--F--F");
     Angle = 60.0f;
     Distance = 0.2;
+}
+
+void LSystem::SetName(const char* NewName)
+{
+    Name = strdup(NewName);
 }
 
 /** LSystem::SetAxiom
@@ -32,6 +37,11 @@ LSystem::LSystem()
 void LSystem::SetAxiom(char* NewAxiom)
 {
     Axiom = strdup(NewAxiom);
+}
+
+void LSystem::SetIterations(int NewIterations)
+{
+    Iterations = NewIterations;
 }
 
 /** LSystem::AddRule
@@ -115,7 +125,15 @@ void LSystem::Rewrite()
     }
 }
 
+void LSystem::SetAngle(float NewAngle)
+{
+    Angle = NewAngle;
+}
 
+void LSystem::SetDistance(float NewDistance)
+{
+    Distance = NewDistance;
+}
 
 /** LSystem::LoadFromFile
  *

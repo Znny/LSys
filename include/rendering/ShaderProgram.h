@@ -14,7 +14,8 @@ namespace LSYS
         class ShaderProgram
         {
         public:
-            ShaderProgram(const char* name = nullptr);
+
+            explicit ShaderProgram(const char* name = nullptr);
 
             void Attach(ShaderObject* Object);
 
@@ -24,6 +25,9 @@ namespace LSYS
 
             void Reload();
 
+            GLuint GetProgramID() const;
+
+        protected:
             //name of the shader program
             char* Name;
 

@@ -39,6 +39,8 @@ add_executable(
         lib/imgui/imgui_tables.cpp
         lib/imgui/backends/imgui_impl_opengl3.cpp
         lib/imgui/backends/imgui_impl_glfw.cpp
+        src/UI/UIManager.cpp
+        src/rendering/ShaderManager.cpp
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")

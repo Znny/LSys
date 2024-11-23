@@ -4,6 +4,7 @@
 
 #pragma once
 
+class LSystem;
 class GLFWwindow;
 
 class UIManager
@@ -14,7 +15,9 @@ public:
     void EndFrame();
     void Shutdown();
 
-    void DrawPrimaryMenu();
+    void DrawPrimaryMenu(LSystem* ActiveSystem);
 
+private:
+    bool bUpdateInRealTime = false;
 };
 

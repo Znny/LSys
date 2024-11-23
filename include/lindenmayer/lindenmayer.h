@@ -22,9 +22,15 @@ struct LS_RewritingRule
  */
 class LSystem
 {
-
+  friend class UIManager;
+  friend class Turtle;
 public:
     LSystem();
+
+    /** SetName
+     * Sets the name of the L-System
+     **/
+    void SetName(const char* NewName);
 
     /** AddRule
      * Adds a rewriting rule to the L-System, for when the given character is read, it is replaced with RewrittenString
@@ -43,7 +49,19 @@ public:
      * Sets the number of iterations to be run when Rewrite is called
      * @param iter - the new number of iterations
      */
-    void SetIterations(int iter);
+    void SetIterations(int NewIterations);
+
+    /** SetAngle
+     * Sets the Angle to rotate
+     * @param iter - the new number of iterations
+     */
+    void SetAngle(float NewAngle);
+
+    /** SetDistance
+     * Sets the distance to move
+     * @param iter - the new number of iterations
+     */
+    void SetDistance(float NewDistance);
 
     /** LoadFromFile
      * Load L-System settings from a file
@@ -54,6 +72,10 @@ public:
 
     void Rewrite();
 
+protected:
+
+    //name of the system
+    char* Name = nullptr;
 
     //initial string which rewriting works off of
     char* Axiom = nullptr;
@@ -61,9 +83,11 @@ public:
     //the generated string from a number of rewritings, is used as an intermediary if multiple iterations occur
     char* GeneratedString = nullptr;
 
+    //raw string representing all rewriting rules
+    char RewritingRuleString[1024];
+
     //rules for rewniting the axiom or generated string for each iteration of rewriting
     LS_RewritingRule RewritingRules[128];
-
 
     //the number of times the string should be rewritten, using the rewriting rules provided
     int Iterations = 1.0f;
