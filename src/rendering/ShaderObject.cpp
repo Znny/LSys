@@ -4,6 +4,8 @@
 
 #include "rendering/ShaderObject.h"
 
+#include "glad/glad.h"
+
 //FILE IO
 #include <cstdio>
 
@@ -25,9 +27,9 @@ namespace LSYS
          *
          *  will attempt to load the shaderobject from the given file
          */
-        ShaderObject::ShaderObject(const char* filename, GLenum shaderType)
+        ShaderObject::ShaderObject(const std::string& filename, GLenum shaderType)
         {
-            if (filename != nullptr)
+            if (!filename.empty())
             {
                 Load(filename, shaderType);
             }
@@ -40,7 +42,7 @@ namespace LSYS
         bool ShaderObject::Compile()
         {
             LogInfo("compiling %s...\n",
-                    Filename
+                    Filename.empty()
                     ? Filename
                     : "unknown");
 
@@ -53,8 +55,10 @@ namespace LSYS
             glCompileShader(ObjectID);
             glGetShaderiv(ObjectID, GL_COMPILE_STATUS, &compile_status);
 
+            bCompiled = compile_status == GL_TRUE;
+
             //log shader log if compilation failed
-            if (compile_status != GL_TRUE)
+            if (!bCompiled)
             {
                 glGetShaderiv(ObjectID, GL_INFO_LOG_LENGTH, &info_log_length);
                 glGetShaderInfoLog(ObjectID, info_log_length, NULL, info_log);
@@ -79,21 +83,19 @@ namespace LSYS
          * @return true if file was successfully loaded and its contents were specified as the shader source
          *
          */
-        bool ShaderObject::Load(const char* filename, GLenum ShaderType)
+        bool ShaderObject::Load(const std::string& filename, GLenum ShaderType)
         {
-            if (filename == nullptr)
+            if (filename.empty())
             {
                 LogError("Failed to load file, no filename provided\n");
                 return false;
             }
 
-            size_t FilenameLength = strlen(filename);
-            Filename = (char*) malloc(FilenameLength);
-            strcpy(Filename, filename);
+            Filename = filename;
 
             LogVerbose("Opening file \"%s\"\n", Filename);
 
-            FILE* file = fopen(Filename, "r");
+            FILE* file = fopen(Filename.c_str(), "r");
             if (!file)
             {
                 LogError("Failed to open file %s\n", filename);
@@ -106,23 +108,14 @@ namespace LSYS
             fseek(file, 0, SEEK_SET);
 
             LogVerbose("%s is %d characters long:\n", Filename, fileSize);
-
-            // Allocate memory for shader source
-            ShaderSource = (char*) malloc(fileSize + 1);
-            if (ShaderSource == nullptr)
-            {
-                LogError("Failed to allocate memory for shader source\n");
-                fclose(file);
-                ShaderSource = nullptr;
-                return false;
-            }
+            ShaderSource.resize(fileSize+1);
 
             // Read shader source from file
-            size_t BytesRead = fread(ShaderSource, 1, fileSize, file);
-            ShaderSource[BytesRead] = '\0'; // Null-terminate the string
+            size_t BytesRead = fread(&ShaderSource[0], 1, fileSize, file);
+            //ShaderSource[BytesRead] = '\0'; // Null-terminate the string
 
             LogVerbose("Read %d Bytes\n", BytesRead);
-            LogVerbose("Contents:\n%s\n", ShaderSource);
+            LogVerbose("Contents:\n%s\n", ShaderSource.c_str());
 
             // Close file
             fclose(file);
@@ -155,7 +148,7 @@ namespace LSYS
                 return false;
             }
 
-            for (ShaderProgram* Program : ProgramsIncludedIn)
+            for (const std::shared_ptr<ShaderProgram>& Program : ProgramsIncludedIn)
             {
                 Program->LinkShaderProgram();
             }

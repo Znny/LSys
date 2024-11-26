@@ -3,27 +3,30 @@
 //
 #pragma once
 
-#include "ShaderObject.h"
+#include <memory>
+#include <string>
 #include <vector>
 
 namespace LSYS
 {
     namespace Rendering
     {
+        class ShaderObject;
 
         class ShaderProgram
         {
         public:
 
             //explicit needed to avoid unnecessary implicit conversions
-            explicit ShaderProgram(const char* FilenameToLoad = nullptr);
+            explicit ShaderProgram(std::string FileName);
+            ShaderProgram& operator= (ShaderProgram& sp);
 
             GLuint GetProgramID() const;
 
             /** AttachShaderObject
              * @param Object - the shader object to attach to the shader program
              */
-            void AttachShaderObject(ShaderObject* Object);
+            void AttachShaderObject(std::shared_ptr<ShaderObject> Object);
 
             /** CompileAttachedShaders - attempts to compile all attached shader objects
              * @return true if all shader objects compiled successfully
@@ -42,13 +45,13 @@ namespace LSYS
 
         protected:
             //name of the shader program
-            char* ProgramName;
+            std::string ProgramName;
 
             //opengl shader program identifier
             GLuint ProgramID;
 
             //attached shader objects
-            std::vector<ShaderObject*> AttachedShaderObjects;
+            std::vector<std::shared_ptr<ShaderObject>> AttachedShaderObjects;
         };
 
     }

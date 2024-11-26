@@ -78,15 +78,32 @@ void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
     ImGui::Button("Choose Colors");
 
     // Save / Load Buttons
-    if (ImGui::Button("Save System")) {
+    if (ImGui::Button("Save System"))
+    {
         // TODO: Implement save functionality
         ImGui::Text("Save button clicked!");
     }
     ImGui::SameLine(); // Place the "Load" button on the same row
-    if (ImGui::Button("Load System")) {
+    if (ImGui::Button("Load System"))
+    {
         // TODO: Implement load functionality
         ImGui::Text("Load button clicked!");
     }
 
     ImGui::End(); // End the window
+}
+
+void UIManager::UpdateScale(float NewScale)
+{
+    // Adjust style
+    ImGui::GetStyle().ScaleAllSizes(NewScale);
+
+    // Adjust fonts
+    ImGuiIO& io = ImGui::GetIO();
+    io.FontGlobalScale = NewScale;
+
+    // Optional: Load a scaled font
+    //io.Fonts->Clear();
+    io.Fonts->AddFontFromFileTTF("../resource/font/Roboto-Medium.ttf", 16.0f * NewScale); // Adjust base font size
+    ImGui_ImplOpenGL3_CreateFontsTexture(); // Rebuild font texture
 }

@@ -4,16 +4,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// header file includes
 
-///opengl extension loader and glfw
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+//stl
+#include <memory>
 
 ///glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-///GLBP
-#include "rendering/ShaderProgram.h"
 
 //LSYS
 #include "rendering/Camera.h"
@@ -24,6 +20,7 @@
 //UI Manager
 #include "UI/UIManager.h"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 //initialize the program, calling sub-init functions
 bool Init(int argc, char** argv);
@@ -150,11 +147,6 @@ GLuint AxesVBO_Positions;
 GLuint AxesVBO_Colors;
 
 //use LSYS::Rendering namespace, which includes ShaderProgram and ShaderObject
-using namespace LSYS::Rendering;
 
-//shader objects
-ShaderProgram* PassthroughShaderProgram;
-ShaderObject* PassthroughVertexShader;
-ShaderObject* PassthroughFragmentShader;
 
 UIManager UI;

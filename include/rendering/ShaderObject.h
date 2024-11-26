@@ -3,8 +3,12 @@
 //
 #pragma once
 
+#include <memory>
+#include <string>
 #include <vector>
-#include "glad/glad.h"
+
+typedef unsigned int GLenum;
+typedef unsigned int GLuint;
 
 namespace LSYS
 {
@@ -16,9 +20,9 @@ namespace LSYS
         {
             friend class ShaderProgram;
         public:
-            explicit ShaderObject(const char* filename = nullptr, GLenum shaderType = GL_VERTEX_SHADER);
+            explicit ShaderObject(const std::string& filename, GLenum shaderType);
 
-            bool Load(const char* filename, GLenum shaderType);
+            bool Load(const std::string& filename, GLenum shaderType);
 
             bool Reload();
 
@@ -32,12 +36,16 @@ namespace LSYS
             GLenum Type;
 
             //file source was loaded from
-            char* Filename;
+            std::string Filename;
 
             //soure of the shader, loaded from a file
-            char* ShaderSource;
-            std::vector<ShaderProgram*> ProgramsIncludedIn;
+            std::string ShaderSource;
+            std::vector<std::shared_ptr<ShaderProgram>> ProgramsIncludedIn;
+            bool bCompiled = false;
         };
 
     }
 }
+
+#undef GLuint
+#undef GLenum

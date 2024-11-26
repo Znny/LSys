@@ -2,9 +2,11 @@
 // Created by ryan on 5/26/24.
 //
 
-#include "rendering/ShaderProgram.h"
+#include "glad/glad.h"
 #include "utility/logging.hpp"
 #include <cstring>
+#include "rendering/ShaderObject.h"
+#include "rendering/ShaderProgram.h"
 
 namespace LSYS
 {
@@ -13,26 +15,34 @@ namespace LSYS
         /** ShaderProgram::ShaderProgram
          * @param FilenameToLoad
          */
-        ShaderProgram::ShaderProgram(const char* FilenameToLoad)
+        ShaderProgram::ShaderProgram(std::string FilenameToLoad)
         {
-            if (FilenameToLoad != nullptr)
+            if (FilenameToLoad.empty())
             {
-                ProgramName = strdup(FilenameToLoad);
+                ProgramName = std::string("default");
             }
             else
             {
-                ProgramName = strdup("unspecified");
+                ProgramName = FilenameToLoad;
             }
 
             ProgramID = glCreateProgram();
             //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
         }
 
+        ShaderProgram & ShaderProgram::operator=(ShaderProgram &sp)
+        {
+            ProgramName = sp.ProgramName;
+            AttachedShaderObjects = sp.AttachedShaderObjects;
+            ProgramID = sp.ProgramID;
+            return *this;
+        }
+
         /** ShaderProgram::AttachShaderObject
          *  Attaches the given shader object to this shader program
          * @param Object
          */
-        void ShaderProgram::AttachShaderObject(ShaderObject* Object)
+        void ShaderProgram::AttachShaderObject(std::shared_ptr<ShaderObject> Object)
         {
             if(Object == nullptr)
             {
@@ -42,7 +52,7 @@ namespace LSYS
             LogInfo("attaching shader %s\n", Object->Filename);
             glAttachShader(ProgramID, Object->ObjectID);
             AttachedShaderObjects.push_back(Object);
-            Object->ProgramsIncludedIn.push_back(this);
+            Object->ProgramsIncludedIn.push_back(std::shared_ptr<ShaderProgram>(this));
         }
 
         /** ShaderProgram::LinkShaderProgram
@@ -56,6 +66,12 @@ namespace LSYS
             {
                 LogError("could not link shader, not enough shader objects attached\n");
                 return false;
+            }
+            for(auto Shader : AttachedShaderObjects)
+            {
+                if(!Shader->bCompiled) {
+                    Shader->Compile();
+                }
             }
             GLint linkStatus = GL_FALSE;
             int info_log_length = 0;
@@ -124,5 +140,4 @@ namespace LSYS
             return ProgramID;
         }
     }
-
 }

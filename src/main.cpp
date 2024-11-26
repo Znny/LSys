@@ -1,14 +1,29 @@
 //
 // Created by Ryan on 5/22/2024.
 //
-#include "main.h"
 #include <string.h>
 #include "utility/logging.hpp"
+
 #include "../lib/imgui/imgui.h"
 #include "../lib/imgui/backends/imgui_impl_glfw.h"
 #include "../lib/imgui/backends/imgui_impl_opengl3.h"
-#include <GLFW/glfw3.h> // For GLFW window
+///opengl extension loader and glfw
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
+#include "main.h"
+
+#include "rendering/ShaderProgram.h"
+#include "rendering/ShaderObject.h"
+#include "rendering/ShaderManager.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//shader objects
+LSYS::Rendering::ShaderManager* shaderManager;
+std::shared_ptr<LSYS::Rendering::ShaderProgram> PassthroughShaderProgram;
+std::shared_ptr<LSYS::Rendering::ShaderObject> PassthroughVertexShader;
+std::shared_ptr<LSYS::Rendering::ShaderObject> PassthroughFragmentShader;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,6 +154,7 @@ bool InitGraphics()
         return false;
     }
 
+
     //set error callback
     glfwSetErrorCallback(ErrorCallback);
 
@@ -180,21 +196,25 @@ bool InitGraphics()
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
+    shaderManager = LSYS::Rendering::ShaderManager::Get();
+    shaderManager->Initialize();
     //create shader objects
-    PassthroughShaderProgram = new ShaderProgram();
-    PassthroughVertexShader = new ShaderObject("resource/shader/passthrough.vs", GL_VERTEX_SHADER);
-    PassthroughFragmentShader = new ShaderObject("resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
+    PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
+    PassthroughFragmentShader = shaderManager->LoadShader("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
+    PassthroughVertexShader = shaderManager->LoadShader("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
+    //PassthroughVertexShader = new ShaderObject("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
+    //PassthroughFragmentShader = new ShaderObject("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
 
     //compile vert and frag shaders
     PassthroughVertexShader->Compile();
     PassthroughFragmentShader->Compile();
 
     //attach shaders to the shader program
-    PassthroughShaderProgram->AttachShaderObject(PassthroughVertexShader);
-    PassthroughShaderProgram->AttachShaderObject(PassthroughFragmentShader);
+    //PassthroughShaderProgram->AttachShaderObject(PassthroughVertexShader);
+    //PassthroughShaderProgram->AttachShaderObject(PassthroughFragmentShader);
 
     //link the program
-    PassthroughShaderProgram->LinkShaderProgram();
+    //PassthroughShaderProgram->LinkShaderProgram();
 
     //initialize L systems
     InitLSystems();
@@ -240,6 +260,7 @@ bool InitGraphics()
 
     // Initialize ImGui
     UI.Init(MainWindow);
+    UI.UpdateScale(1.5);
 
     return true;
 }
@@ -414,11 +435,6 @@ void Render(double dt)
 
     // Start ImGui frame
     UI.BeginFrame();
-
-    // Create your UI
-    ImGui::Begin("Example Window");
-    ImGui::Text("Hello, world!");
-    ImGui::End();
 
     UI.DrawPrimaryMenu(&ActiveSystem);
 

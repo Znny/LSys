@@ -17,6 +17,8 @@ public:
 
     void DrawPrimaryMenu(LSystem* ActiveSystem);
 
+    void UpdateScale(float NewScale);
+
 private:
     bool bUpdateInRealTime = false;
 };

@@ -4,23 +4,37 @@
 
 #pragma once
 #include <memory>
+#include <string>
 #include <unordered_map>
 
-
-class ShaderObject;
-class ShaderProgram;
-
-class ShaderManager
+typedef unsigned int GLenum;
+namespace LSYS
 {
-public:
-    static ShaderManager& Get();
+    namespace Rendering
+    {
+        class ShaderObject;
+        class ShaderProgram;
 
-    std::shared_ptr<ShaderProgram> LoadShaderProgram();
+        class ShaderManager
+        {
+        public:
+            static ShaderManager* Get();
 
-private:
-    ShaderManager() = default;
-    ~ShaderManager() = default;
+            void Initialize();
 
-    std::unordered_map<std::string, std::unique_ptr<ShaderProgram>> ShaderPrograms;
-    std::unordered_map<std::string, std::unique_ptr<ShaderObject>> ShaderObjects;
-};
+            std::shared_ptr<ShaderProgram> LoadShaderProgram(const std::string& ProgramName, const std::string& VertexShaderName, const std::string& FragmentShaderName);
+            std::shared_ptr<ShaderObject> LoadShader(const std::string& ShaderName, GLenum ShaderType);
+
+        private:
+            ShaderManager();
+            ~ShaderManager();
+
+            std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> ShaderPrograms;
+            std::unordered_map<std::string, std::shared_ptr<ShaderObject>> ShaderObjects;
+
+            static ShaderManager* sShaderManager;
+        };
+    }
+}
+
+#undef GLenum
