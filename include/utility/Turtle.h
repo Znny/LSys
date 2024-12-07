@@ -17,6 +17,7 @@ class Turtle
 public:
     Turtle()=default;
 
+    void Reset();
     void MoveForward(float Distance);
 
     //special movement

@@ -8,136 +8,132 @@
 #include "rendering/ShaderObject.h"
 #include "rendering/ShaderProgram.h"
 
-namespace LSYS
-{
-    namespace Rendering
+namespace Rendering {
+    /** ShaderProgram::ShaderProgram
+     * @param FilenameToLoad
+     */
+    ShaderProgram::ShaderProgram(std::string FilenameToLoad)
     {
-        /** ShaderProgram::ShaderProgram
-         * @param FilenameToLoad
-         */
-        ShaderProgram::ShaderProgram(std::string FilenameToLoad)
+        if (FilenameToLoad.empty())
         {
-            if (FilenameToLoad.empty())
-            {
-                ProgramName = std::string("default");
-            }
-            else
-            {
-                ProgramName = FilenameToLoad;
-            }
-
-            ProgramID = glCreateProgram();
-            //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
+            ProgramName = std::string("default");
+        }
+        else
+        {
+            ProgramName = FilenameToLoad;
         }
 
-        ShaderProgram & ShaderProgram::operator=(ShaderProgram &sp)
+        ProgramID = glCreateProgram();
+        //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
+    }
+
+    ShaderProgram & ShaderProgram::operator=(ShaderProgram &sp)
+    {
+        ProgramName = sp.ProgramName;
+        AttachedShaderObjects = sp.AttachedShaderObjects;
+        ProgramID = sp.ProgramID;
+        return *this;
+    }
+
+    /** ShaderProgram::AttachShaderObject
+     *  Attaches the given shader object to this shader program
+     * @param Object
+     */
+    void ShaderProgram::AttachShaderObject(std::shared_ptr<ShaderObject> Object)
+    {
+        if(Object == nullptr)
         {
-            ProgramName = sp.ProgramName;
-            AttachedShaderObjects = sp.AttachedShaderObjects;
-            ProgramID = sp.ProgramID;
-            return *this;
+            return;
         }
 
-        /** ShaderProgram::AttachShaderObject
-         *  Attaches the given shader object to this shader program
-         * @param Object
-         */
-        void ShaderProgram::AttachShaderObject(std::shared_ptr<ShaderObject> Object)
-        {
-            if(Object == nullptr)
-            {
-                return;
-            }
+        LogInfo("attaching shader %s\n", Object->Filename);
+        glAttachShader(ProgramID, Object->ObjectID);
+        AttachedShaderObjects.push_back(Object);
+        Object->ProgramsIncludedIn.push_back(std::shared_ptr<ShaderProgram>(this));
+    }
 
-            LogInfo("attaching shader %s\n", Object->Filename);
-            glAttachShader(ProgramID, Object->ObjectID);
-            AttachedShaderObjects.push_back(Object);
-            Object->ProgramsIncludedIn.push_back(std::shared_ptr<ShaderProgram>(this));
+    /** ShaderProgram::LinkShaderProgram
+     * attempts to link the shader program shader objects together into a valid pipeline
+     * uncompiled shader-objects will attempt to be compiled
+     * @returns true if shader program linked successfully
+     */
+    bool ShaderProgram::LinkShaderProgram()
+    {
+        if (AttachedShaderObjects.size() < 2)
+        {
+            LogError("could not link shader, not enough shader objects attached\n");
+            return false;
         }
-
-        /** ShaderProgram::LinkShaderProgram
-         * attempts to link the shader program shader objects together into a valid pipeline
-         * uncompiled shader-objects will attempt to be compiled
-         * @returns true if shader program linked successfully
-         */
-        bool ShaderProgram::LinkShaderProgram()
+        for(auto Shader : AttachedShaderObjects)
         {
-            if (AttachedShaderObjects.size() < 2)
-            {
-                LogError("could not link shader, not enough shader objects attached\n");
-                return false;
-            }
-            for(auto Shader : AttachedShaderObjects)
-            {
-                if(!Shader->bCompiled) {
-                    Shader->Compile();
-                }
-            }
-            GLint linkStatus = GL_FALSE;
-            int info_log_length = 0;
-
-            LogInfo("linking \"%s\"...\n", ProgramName);
-            glLinkProgram(ProgramID);
-            glGetProgramiv(ProgramID, GL_LINK_STATUS, &linkStatus);
-
-            //log error if linking failed
-            if (linkStatus != GL_TRUE)
-            {
-                GLsizei actualSize;
-                glGetShaderiv(ProgramID, GL_INFO_LOG_LENGTH, &info_log_length);
-
-                char info_log[1024];
-                glGetProgramInfoLog(ProgramID, info_log_length, &actualSize, info_log);
-
-                LogError("error:\n");
-                LogError("%s\n", info_log);
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /*** ShaderProgram::CompileAttachedShaders
-         * attempts to compile attached shaders
-         * @return true if all attached shaderobjects were compiled successfully
-         */
-        bool ShaderProgram::CompileAttachedShaders()
-        {
-            bool bSucceeding = true;
-            for (int i = 0; i < AttachedShaderObjects.size() && bSucceeding; i++)
-            {
-                bSucceeding |= AttachedShaderObjects[i]->Compile();
-            }
-
-            return bSucceeding;
-        }
-
-        /*** ShaderProgram::ReloadShaderObjects
-         * attempts to reload all shader objects
-         */
-        void ShaderProgram::ReloadShaderObjects()
-        {
-            bool bReloadSucceeded = true;
-            //attempt to reload each attached shader object
-            for (int i = 0; i < AttachedShaderObjects.size(); i++)
-            {
-                bReloadSucceeded = bReloadSucceeded && AttachedShaderObjects[i]->Reload();
-            }
-
-            //attempt to link if reload succeeded
-            if (bReloadSucceeded)
-            {
-                if (LinkShaderProgram())
-                {
-                    LogInfo("reloaded shader \"%s\"\n", ProgramName);
-                }
+            if(!Shader->bCompiled) {
+                Shader->Compile();
             }
         }
+        GLint linkStatus = GL_FALSE;
+        int info_log_length = 0;
 
-        GLuint ShaderProgram::GetProgramID() const
+        LogInfo("linking \"%s\"...\n", ProgramName);
+        glLinkProgram(ProgramID);
+        glGetProgramiv(ProgramID, GL_LINK_STATUS, &linkStatus);
+
+        //log error if linking failed
+        if (linkStatus != GL_TRUE)
         {
-            return ProgramID;
+            GLsizei actualSize;
+            glGetShaderiv(ProgramID, GL_INFO_LOG_LENGTH, &info_log_length);
+
+            char info_log[1024];
+            glGetProgramInfoLog(ProgramID, info_log_length, &actualSize, info_log);
+
+            LogError("error:\n");
+            LogError("%s\n", info_log);
+
+            return false;
         }
+
+        return true;
+    }
+
+    /*** ShaderProgram::CompileAttachedShaders
+     * attempts to compile attached shaders
+     * @return true if all attached shaderobjects were compiled successfully
+     */
+    bool ShaderProgram::CompileAttachedShaders()
+    {
+        bool bSucceeding = true;
+        for (int i = 0; i < AttachedShaderObjects.size() && bSucceeding; i++)
+        {
+            bSucceeding |= AttachedShaderObjects[i]->Compile();
+        }
+
+        return bSucceeding;
+    }
+
+    /*** ShaderProgram::ReloadShaderObjects
+     * attempts to reload all shader objects
+     */
+    void ShaderProgram::ReloadShaderObjects()
+    {
+        bool bReloadSucceeded = true;
+        //attempt to reload each attached shader object
+        for (int i = 0; i < AttachedShaderObjects.size(); i++)
+        {
+            bReloadSucceeded = bReloadSucceeded && AttachedShaderObjects[i]->Reload();
+        }
+
+        //attempt to link if reload succeeded
+        if (bReloadSucceeded)
+        {
+            if (LinkShaderProgram())
+            {
+                LogInfo("reloaded shader \"%s\"\n", ProgramName);
+            }
+        }
+    }
+
+    GLuint ShaderProgram::GetProgramID() const
+    {
+        return ProgramID;
     }
 }

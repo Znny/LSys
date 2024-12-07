@@ -125,6 +125,15 @@ void LSystem::Rewrite()
     }
 }
 
+void LSystem::Reset()
+{
+    if(GeneratedString != nullptr)
+    {
+        free(GeneratedString);
+        GeneratedString = nullptr;
+    }
+}
+
 void LSystem::SetAngle(float NewAngle)
 {
     Angle = NewAngle;

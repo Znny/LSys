@@ -40,6 +40,7 @@ void ProcessArguments(int argc, char** argv);
 void Run();
 
 void UpdateTiming(GLFWwindow* window);
+void UpdateVertexBuffers();
 void Tick(double dt);
 void Render(double dt);
 

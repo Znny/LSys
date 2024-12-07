@@ -7,52 +7,47 @@
 #include <string>
 #include <vector>
 
-namespace LSYS
-{
-    namespace Rendering
-    {
-        class ShaderObject;
+namespace Rendering {
+ class ShaderObject;
 
-        class ShaderProgram
-        {
-        public:
+ class ShaderProgram
+ {
+ public:
 
-            //explicit needed to avoid unnecessary implicit conversions
-            explicit ShaderProgram(std::string FileName);
-            ShaderProgram& operator= (ShaderProgram& sp);
+  //explicit needed to avoid unnecessary implicit conversions
+  explicit ShaderProgram(std::string FileName);
+  ShaderProgram& operator= (ShaderProgram& sp);
 
-            GLuint GetProgramID() const;
+  GLuint GetProgramID() const;
 
-            /** AttachShaderObject
-             * @param Object - the shader object to attach to the shader program
-             */
-            void AttachShaderObject(std::shared_ptr<ShaderObject> Object);
+  /** AttachShaderObject
+   * @param Object - the shader object to attach to the shader program
+   */
+  void AttachShaderObject(std::shared_ptr<ShaderObject> Object);
 
-            /** CompileAttachedShaders - attempts to compile all attached shader objects
-             * @return true if all shader objects compiled successfully
-             */
-            bool CompileAttachedShaders();
+  /** CompileAttachedShaders - attempts to compile all attached shader objects
+   * @return true if all shader objects compiled successfully
+   */
+  bool CompileAttachedShaders();
 
-            /** LinkShaderProgram
-             * @return true if linking the shader program was successful
-             */
-            bool LinkShaderProgram();
+  /** LinkShaderProgram
+   * @return true if linking the shader program was successful
+   */
+  bool LinkShaderProgram();
 
-            /** ReloadShaderObjects
-             * ReloadShaderObjects all shader objects
-             */
-            void ReloadShaderObjects();
+  /** ReloadShaderObjects
+   * ReloadShaderObjects all shader objects
+   */
+  void ReloadShaderObjects();
 
-        protected:
-            //name of the shader program
-            std::string ProgramName;
+ protected:
+  //name of the shader program
+  std::string ProgramName;
 
-            //opengl shader program identifier
-            GLuint ProgramID;
+  //opengl shader program identifier
+  GLuint ProgramID;
 
-            //attached shader objects
-            std::vector<std::shared_ptr<ShaderObject>> AttachedShaderObjects;
-        };
-
-    }
+  //attached shader objects
+  std::vector<std::shared_ptr<ShaderObject>> AttachedShaderObjects;
+ };
 }

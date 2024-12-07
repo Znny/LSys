@@ -15,6 +15,10 @@ public:
     void EndFrame();
     void Shutdown();
 
+    void (*UpdateCallback)();
+
+    void SetUpdateCallback(void (*UpdateCallbackSignature)());
+
     void DrawPrimaryMenu(LSystem* ActiveSystem);
 
     void UpdateScale(float NewScale);

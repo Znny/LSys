@@ -8,33 +8,30 @@
 #include <unordered_map>
 
 typedef unsigned int GLenum;
-namespace LSYS
+namespace Rendering
 {
-    namespace Rendering
+    class ShaderObject;
+    class ShaderProgram;
+
+    class ShaderManager
     {
-        class ShaderObject;
-        class ShaderProgram;
+    public:
+        static ShaderManager* Get();
 
-        class ShaderManager
-        {
-        public:
-            static ShaderManager* Get();
+        void Initialize();
 
-            void Initialize();
+        std::shared_ptr<ShaderProgram> LoadShaderProgram(const std::string& ProgramName, const std::string& VertexShaderName, const std::string& FragmentShaderName);
+        std::shared_ptr<ShaderObject> LoadShader(const std::string& ShaderName, GLenum ShaderType);
 
-            std::shared_ptr<ShaderProgram> LoadShaderProgram(const std::string& ProgramName, const std::string& VertexShaderName, const std::string& FragmentShaderName);
-            std::shared_ptr<ShaderObject> LoadShader(const std::string& ShaderName, GLenum ShaderType);
+    private:
+        ShaderManager();
+        ~ShaderManager();
 
-        private:
-            ShaderManager();
-            ~ShaderManager();
+        std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> ShaderPrograms;
+        std::unordered_map<std::string, std::shared_ptr<ShaderObject>> ShaderObjects;
 
-            std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> ShaderPrograms;
-            std::unordered_map<std::string, std::shared_ptr<ShaderObject>> ShaderObjects;
-
-            static ShaderManager* sShaderManager;
-        };
-    }
+        static ShaderManager* sShaderManager;
+    };
 }
 
 #undef GLenum

@@ -10,41 +10,37 @@
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
-namespace LSYS
+namespace Rendering
 {
-    namespace Rendering
+    class ShaderProgram;
+
+    class ShaderObject
     {
-        class ShaderProgram;
+        friend class ShaderProgram;
+    public:
+        explicit ShaderObject(const std::string& filename, GLenum shaderType);
 
-        class ShaderObject
-        {
-            friend class ShaderProgram;
-        public:
-            explicit ShaderObject(const std::string& filename, GLenum shaderType);
+        bool Load(const std::string& filename, GLenum shaderType);
 
-            bool Load(const std::string& filename, GLenum shaderType);
+        bool Reload();
 
-            bool Reload();
+        bool Compile();
 
-            bool Compile();
+    protected:
+        //openGL shader object ID, used for bindings and attachment
+        GLuint ObjectID;
 
-        protected:
-            //openGL shader object ID, used for bindings and attachment
-            GLuint ObjectID;
+        //type of shader object, valid values are defined by openGL
+        GLenum Type;
 
-            //type of shader object, valid values are defined by openGL
-            GLenum Type;
+        //file source was loaded from
+        std::string Filename;
 
-            //file source was loaded from
-            std::string Filename;
-
-            //soure of the shader, loaded from a file
-            std::string ShaderSource;
-            std::vector<std::shared_ptr<ShaderProgram>> ProgramsIncludedIn;
-            bool bCompiled = false;
-        };
-
-    }
+        //soure of the shader, loaded from a file
+        std::string ShaderSource;
+        std::vector<std::shared_ptr<ShaderProgram>> ProgramsIncludedIn;
+        bool bCompiled = false;
+    };
 }
 
 #undef GLuint

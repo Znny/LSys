@@ -3,7 +3,6 @@
 //
 #pragma once
 
-
 struct LS_RewritingRule
 {
     LS_RewritingRule() : LS_RewritingRule(' ', ""){}
@@ -78,6 +77,7 @@ public:
     void LoadFromFile(const char* Filename);
 
     void Rewrite();
+    void Reset();
 
 protected:
 

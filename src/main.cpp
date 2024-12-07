@@ -20,10 +20,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //shader objects
-LSYS::Rendering::ShaderManager* shaderManager;
-std::shared_ptr<LSYS::Rendering::ShaderProgram> PassthroughShaderProgram;
-std::shared_ptr<LSYS::Rendering::ShaderObject> PassthroughVertexShader;
-std::shared_ptr<LSYS::Rendering::ShaderObject> PassthroughFragmentShader;
+Rendering::ShaderManager* shaderManager;
+std::shared_ptr<Rendering::ShaderProgram> PassthroughShaderProgram;
+std::shared_ptr<Rendering::ShaderObject> PassthroughVertexShader;
+std::shared_ptr<Rendering::ShaderObject> PassthroughFragmentShader;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -196,7 +196,7 @@ bool InitGraphics()
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
-    shaderManager = LSYS::Rendering::ShaderManager::Get();
+    shaderManager = Rendering::ShaderManager::Get();
     shaderManager->Initialize();
     //create shader objects
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
@@ -208,13 +208,6 @@ bool InitGraphics()
     //compile vert and frag shaders
     PassthroughVertexShader->Compile();
     PassthroughFragmentShader->Compile();
-
-    //attach shaders to the shader program
-    //PassthroughShaderProgram->AttachShaderObject(PassthroughVertexShader);
-    //PassthroughShaderProgram->AttachShaderObject(PassthroughFragmentShader);
-
-    //link the program
-    //PassthroughShaderProgram->LinkShaderProgram();
 
     //initialize L systems
     InitLSystems();
@@ -260,6 +253,7 @@ bool InitGraphics()
 
     // Initialize ImGui
     UI.Init(MainWindow);
+    UI.SetUpdateCallback(UpdateVertexBuffers);
     UI.UpdateScale(1.5);
 
     return true;
@@ -267,7 +261,35 @@ bool InitGraphics()
 
 bool InitLSystems()
 {
-    //do rewrite for the currently active system
+    {
+        //create vertax array object for storing info about bound objects and what to render
+        glGenVertexArrays(1, &ColoredVertexArrayObject);
+        glBindVertexArray(ColoredVertexArrayObject);
+
+        //create vertex buffer for storing per-vertex data
+        //specify location layout, and enable vertex attribute array
+        glGenBuffers(1, &ColoredVertexBufferObject_Positions);
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
+
+        //specify color layout, and enable vertex attribute array
+        glGenBuffers(1, &ColoredVertexBufferObject_Colors);
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+    }
+
+    UpdateVertexBuffers();
+
+    return true;
+}
+
+void UpdateVertexBuffers()
+{
+    //ActiveSystem.SetIterations(3);
+    ActiveTurtle.Reset();
+    ActiveSystem.Reset();
     ActiveSystem.Rewrite();
 
     //use our active turtle to draw the system and return a list of triangles
@@ -276,16 +298,8 @@ bool InitLSystems()
     //if no triangles are present, return early
     if (TriangleList == nullptr)
     {
-        return false;
+        return;
     }
-
-    //min and max values for floating point
-    constexpr float FLOAT_MIN = 1.175494351E-38;
-    constexpr float FLOAT_MAX = 3.402823466E+38;
-
-    //set initial values for min and max
-    glm::vec3 min = glm::vec3(FLOAT_MAX);
-    glm::vec3 max = glm::vec3(FLOAT_MIN);
 
     LogInfo("loading %d triangles\n", TriangleList->NumTriangles);
 
@@ -303,43 +317,30 @@ bool InitLSystems()
 
             VertLocations[TriangleIndex * 3 + VertIndex] = vert;
             VertColors[TriangleIndex * 3 + VertIndex] = color;
-
-            //track min and max values for vertices in all three dimensions (finding bounding box)
-            {
-                min.x = vert.x < min.x ? vert.x : min.x;
-                max.x = vert.x > max.x ? vert.x : max.x;
-                min.y = vert.y < min.y ? vert.y : min.y;
-                max.y = vert.y > max.y ? vert.y : max.y;
-                min.z = vert.z < min.z ? vert.z : min.z;
-                max.z = vert.z > max.z ? vert.z : max.z;
-            }
         }
     }
 
     //calculate model center
-    const glm::vec3 ModelCenter = (min + max) / 2.0f;
+    const glm::vec3 ModelCenter = (TriangleList->BoundingBoxMin + TriangleList->BoundingBoxMax) / 2.0f;
 
     for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
     {
         for(int v = 0; v < 3; v++)
         {
-            VertLocations[TriangleIndex*3 + v] -= ModelCenter;
+            VertLocations[TriangleIndex*3 + v].y -= ModelCenter.y/2.0;
         }
     }
 
-    const float Distance = glm::length(max.y - min.y);
+    //update view distance
+    const float Distance = glm::length(TriangleList->BoundingBoxMax.y - TriangleList->BoundingBoxMin.y);
     ViewDistance = Distance / (2.0f * glm::tan(FoV_y / 2.f)) * 1.25;
     ViewDistance = 15.0f;
 
-    LogInfo("viewdistance = %f\n", ViewDistance);
-
     {
         //create vertax array object for storing info about bound objects and what to render
-        glGenVertexArrays(1, &ColoredVertexArrayObject);
         glBindVertexArray(ColoredVertexArrayObject);
 
         //create vertex buffer for storing per-vertex data
-        glGenBuffers(1, &ColoredVertexBufferObject_Positions);
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
         glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
                      (GLfloat*) VertLocations, GL_STATIC_DRAW);
@@ -348,7 +349,6 @@ bool InitLSystems()
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
 
-        glGenBuffers(1, &ColoredVertexBufferObject_Colors);
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
         glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
                      (GLfloat*) VertColors, GL_STATIC_DRAW);
@@ -357,9 +357,10 @@ bool InitLSystems()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
     }
-
-    return true;
+    free(VertLocations);
+    free(VertColors);
 }
+
 
 bool InitInput()
 {
@@ -719,6 +720,8 @@ void UpdateTiming(GLFWwindow* Window)
     }
     FrameCount++;
 }
+
+
 
 
 

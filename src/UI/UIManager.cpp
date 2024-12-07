@@ -38,6 +38,11 @@ void UIManager::Shutdown()
     ImGui::DestroyContext();
 }
 
+void UIManager::SetUpdateCallback(void(*UpdateCallbackSignature)())
+{
+    UpdateCallback = UpdateCallbackSignature;
+}
+
 void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
 {
     ImGui::Begin("L-System Configuration"); // Start a new window
@@ -88,6 +93,10 @@ void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
     {
         // TODO: Implement load functionality
         ImGui::Text("Load button clicked!");
+    }
+
+    if(bSignificantChangeDetected) {
+        UpdateCallback();
     }
 
     ImGui::End(); // End the window

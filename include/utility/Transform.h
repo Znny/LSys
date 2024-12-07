@@ -19,6 +19,7 @@ public:
     static const glm::vec3 WorldForward;
     static const glm::vec3 WorldRight;
     static const glm::vec3 WorldUp;
+    void Reset();
 
     // Getters
     glm::vec3 GetTranslation() const { return Translation; }

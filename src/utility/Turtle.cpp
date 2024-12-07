@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <cstring>
 
+void Turtle::Reset()
+{
+    CurrentTransform.Reset();
+}
+
 void Turtle::MoveForward(float Distance)
 {
     CurrentTransform.SetLocation(CurrentTransform.GetLocation() + CurrentTransform.GetForwardVector() * Distance);
