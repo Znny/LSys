@@ -3,13 +3,15 @@
 //
 #pragma once
 
+
+#define MaxReplacementLength 48
 struct LS_RewritingRule
 {
     LS_RewritingRule() : LS_RewritingRule(' ', ""){}
     LS_RewritingRule(char c, const char* R);
 
-    char Character;
-    char* RString;
+    char Character = ' ';
+    char RString[MaxReplacementLength]={0};
 };
 
 /* LSystem
@@ -78,6 +80,7 @@ public:
 
     void Rewrite();
     void Reset();
+    void UpdateRulesFromRuleString();
 
 protected:
 
@@ -90,10 +93,7 @@ protected:
     //the generated string from a number of rewritings, is used as an intermediary if multiple iterations occur
     char* GeneratedString = nullptr;
 
-    //raw string representing all rewriting rules
-    char RewritingRuleString[1024];
-
-    //rules for rewniting the axiom or generated string for each iteration of rewriting
+    //rules for rewriting the axiom or generated string for each iteration of rewriting
     LS_RewritingRule RewritingRules[128];
 
     //the number of times the string should be rewritten, using the rewriting rules provided

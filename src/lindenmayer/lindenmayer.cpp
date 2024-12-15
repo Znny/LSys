@@ -11,7 +11,7 @@
 LS_RewritingRule::LS_RewritingRule(char c, const char *R)
 {
     Character = c;
-    RString = strdup(R);
+    strncat(RString, R, MaxReplacementLength);
 }
 
 /** LSystem::LSystem
@@ -53,7 +53,7 @@ void LSystem::AddRule(char c, const char* R)
 {
     LS_RewritingRule& Rule = RewritingRules[(int) c];
     Rule.Character = c;
-    Rule.RString = strdup(R);
+    strncat(Rule.RString, R, MaxReplacementLength);
 }
 
 /** LSystem::Rewrite
@@ -206,5 +206,11 @@ void LSystem::AddRuleFromString(const char* String)
     char* FullString = strdup(String);
     FullString[ColonOffset] = '\0';
     AddRule(*FullString, FullString+ColonOffset+1);
+}
+
+void LSystem::UpdateRulesFromRuleString()
+{
+    //generate working string
+    //separate each rule, should end in newline
 }
 

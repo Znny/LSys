@@ -4,6 +4,7 @@
 #include "UI/UIManager.h"
 
 #include <lindenmayer/lindenmayer.h>
+#include <string>
 
 #include "../lib/imgui/imgui.h"
 #include "../lib/imgui/backends/imgui_impl_glfw.h"
@@ -71,11 +72,39 @@ void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
     static char axiom[64] = "F";
     bSignificantChangeDetected |= ImGui::InputText("Axiom", ActiveSystem->Axiom, IM_ARRAYSIZE(axiom));
 
-    // Rewriting Rules
-    static char rules[1024] = "F -> FF+[+F-F-F]-[-F+F+F]";
-    if(ImGui::InputTextMultiline("Rewriting Rules", rules, IM_ARRAYSIZE(rules), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 10)))
+    //list rules
+    int Count = 0;
+    for(LS_RewritingRule& Rule : ActiveSystem->RewritingRules)
     {
+        if(Rule.Character != ' ')
+        {
+            ImGui::Text("Rule %c:", Rule.Character);
+            ImGui::SameLine();
+            ImGui::PushID(Count);
+            ImGui::SetNextItemWidth(200);
+            if(ImGui::InputText("##replacement", Rule.RString, MaxReplacementLength))
+            {
+                bSignificantChangeDetected |= true;
+            }
+            ImGui::PopID();
+            Count++;
+        }
+    }
 
+    //Add rule
+    static char NewRuleCharacterBuf = ' ';
+    static char NewRuleReplacementBuf[MaxReplacementLength+1] = {' '};
+    ImGui::SetNextItemWidth(30);
+    ImGui::InputText("Character", &NewRuleCharacterBuf, 2);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(200);
+    ImGui::InputText("Replacement", NewRuleReplacementBuf, MaxReplacementLength);
+    if(ImGui::Button("Add Rule"))
+    {
+        if(ActiveSystem->RewritingRules[(int)NewRuleCharacterBuf].Character != NewRuleCharacterBuf)
+        {
+            ActiveSystem->AddRule(NewRuleCharacterBuf, NewRuleReplacementBuf);
+        }
     }
 
     // Color Palette (Placeholder)
