@@ -46,7 +46,7 @@ namespace Rendering {
             return;
         }
 
-        LogInfo("attaching shader %s\n", Object->Filename);
+        LogInfo("attaching shader %s\n", Object->Filename.c_str());
         glAttachShader(ProgramID, Object->ObjectID);
         AttachedShaderObjects.push_back(Object);
         Object->ProgramsIncludedIn.push_back(std::shared_ptr<ShaderProgram>(this));
@@ -73,7 +73,7 @@ namespace Rendering {
         GLint linkStatus = GL_FALSE;
         int info_log_length = 0;
 
-        LogInfo("linking \"%s\"...\n", ProgramName);
+        LogInfo("linking \"%s\"...\n", ProgramName.c_str());
         glLinkProgram(ProgramID);
         glGetProgramiv(ProgramID, GL_LINK_STATUS, &linkStatus);
 
@@ -127,7 +127,7 @@ namespace Rendering {
         {
             if (LinkShaderProgram())
             {
-                LogInfo("reloaded shader \"%s\"\n", ProgramName);
+                LogInfo("reloaded shader \"%s\"\n", ProgramName.c_str());
             }
         }
     }

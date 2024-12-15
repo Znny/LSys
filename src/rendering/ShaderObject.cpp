@@ -39,7 +39,7 @@ namespace Rendering {
     {
         LogInfo("compiling %s...\n",
                 Filename.empty()
-                ? Filename
+                ? Filename.c_str()
                 : "unknown");
 
         GLint compile_status = GL_FALSE;
@@ -89,12 +89,12 @@ namespace Rendering {
 
         Filename = filename;
 
-        LogVerbose("Opening file \"%s\"\n", Filename);
+        LogVerbose("Opening file \"%s\"\n", Filename.c_str());
 
         FILE* file = fopen(Filename.c_str(), "r");
         if (!file)
         {
-            LogError("Failed to open file %s\n", filename);
+            LogError("Failed to open file %s\n", filename.c_str());
             return false;
         }
 
@@ -103,7 +103,7 @@ namespace Rendering {
         long fileSize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        LogVerbose("%s is %d characters long:\n", Filename, fileSize);
+        LogVerbose("%s is %d characters long:\n", Filename.c_str(), fileSize);
         ShaderSource.resize(fileSize+1);
 
         // Read shader source from file
@@ -132,7 +132,7 @@ namespace Rendering {
     */
     bool ShaderObject::Reload()
     {
-        LogInfo("reloading %s\n", Filename);
+        LogInfo("reloading %s\n", Filename.c_str());
 
         if (!Load(Filename, Type))
         {
