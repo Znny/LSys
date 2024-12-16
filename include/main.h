@@ -147,7 +147,5 @@ GLuint AxesVAO;
 GLuint AxesVBO_Positions;
 GLuint AxesVBO_Colors;
 
-//use LSYS::Rendering namespace, which includes ShaderProgram and ShaderObject
-
-
+//UI manager
 UIManager UI;

@@ -198,12 +198,11 @@ bool InitGraphics()
 
     shaderManager = Rendering::ShaderManager::Get();
     shaderManager->Initialize();
+
     //create shader objects
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
     PassthroughFragmentShader = shaderManager->LoadShader("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
     PassthroughVertexShader = shaderManager->LoadShader("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
-    //PassthroughVertexShader = new ShaderObject("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
-    //PassthroughFragmentShader = new ShaderObject("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
 
     //compile vert and frag shaders
     PassthroughVertexShader->Compile();
@@ -447,8 +446,6 @@ void Render(double dt)
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ActiveViewProjectionMatrix);
-
-    //if(PassthroughShaderProgram != nullptr && glIsProgram(PassthroughShaderProgram->ProgramID))
     {
         //enable the passthrough shader program
         glUseProgram(PassthroughShaderProgram->GetProgramID());
@@ -461,7 +458,6 @@ void Render(double dt)
         glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
-    //*/
 
     //swap front and back buffers
     glfwSwapBuffers(MainWindow);
@@ -526,18 +522,6 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
         return;
     }
 
-
-    //set action string
-    const char* ActionString =
-            Action == GLFW_PRESS
-            ? "GLFW_PRESS"
-            : Action == GLFW_RELEASE
-              ? "GLFW_RELEASE"
-              : "GLFW_REPEAT";
-
-    //LogDebug("KeyCode=%d, ScanCode=%d' Action=%d, Modifiers=%d\n", KeyCode, ScanCode, Action, Modifiers);
-    //LogDebug("glfwGetKeyScanCode(%d)=%d\n", KeyCode, glfwGetKeyScancode(KeyCode));
-    //LogDebug("glfwGetKeyName(KeyCode,ScanCode)=%s\n", glfwGetKeyName(KeyCode, ScanCode));
 
     if (KeyCode == GLFW_KEY_ESCAPE && Action == GLFW_PRESS)
     {
@@ -671,9 +655,6 @@ void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset
     //call ImGui callback
     ImGui_ImplGlfw_ScrollCallback(Window, xOffset, yOffset);
 
-    const double ScaleOffset = 1.0;
-    //ViewDistance += yOffset * ScaleOffset;
-
     MainCamera.SetLocation(MainCamera.GetLocation() + MainCamera.GetForwardVector() * (float)(ViewDistance * 0.1 * yOffset));
 }
 
@@ -720,9 +701,4 @@ void UpdateTiming(GLFWwindow* Window)
     }
     FrameCount++;
 }
-
-
-
-
-
 
