@@ -31,6 +31,8 @@ public:
     void SetTranslation(const glm::vec3& v) { Translation = v; }
     void SetLocation(const glm::vec3& v) { Translation = v; }
     void SetRotation(const glm::vec3& eulerAngles) { Rotation = glm::quat(glm::radians(eulerAngles)); }
+    void SetRotation(const glm::mat3& rotationMat) { Rotation = glm::quat(rotationMat); }
+    void SetRotation(const glm::quat& rotationQuat) { Rotation = rotationQuat; }
     void SetScale(const glm::vec3& v) { Scale = v; }
 
     // Directional Vectors
