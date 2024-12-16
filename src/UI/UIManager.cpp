@@ -81,7 +81,6 @@ void UIManager::DrawPrimaryMenu(LSystem* ActiveSystem)
             ImGui::Text("Rule %c:", Rule.Character);
             ImGui::SameLine();
             ImGui::PushID(Count);
-            ImGui::SetNextItemWidth(200);
             if(ImGui::InputText("##replacement", Rule.RString, MaxReplacementLength))
             {
                 bSignificantChangeDetected |= true;
