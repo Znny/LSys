@@ -27,7 +27,7 @@ namespace Rendering {
         //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
     }
 
-    ShaderProgram & ShaderProgram::operator=(ShaderProgram &sp)
+    ShaderProgram& ShaderProgram::operator=(ShaderProgram &sp)
     {
         ProgramName = sp.ProgramName;
         AttachedShaderObjects = sp.AttachedShaderObjects;
