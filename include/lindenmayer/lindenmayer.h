@@ -73,14 +73,18 @@ public:
 
     /** LoadFromFile
      * Load L-System settings from a file
-
      * @param Filename
      */
     void LoadFromFile(const char* Filename);
 
+    /** LoadFromFile
+     * Save L-System settings to the given file
+     * @param Filename
+     */
+    void SaveToFile(const char* Filename);
+
     void Rewrite();
     void Reset();
-    void UpdateRulesFromRuleString();
 
 protected:
 

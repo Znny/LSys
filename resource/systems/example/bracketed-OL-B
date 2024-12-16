@@ -1,4 +1,4 @@
-i:5
-a:20
-x:F
+iterations:5
+angle:20
+axiom:F
 F:F[+F]F[-F][F]

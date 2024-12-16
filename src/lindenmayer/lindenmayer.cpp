@@ -166,21 +166,25 @@ void LSystem::LoadFromFile(const char* Filename)
 
     while (fgets(line, 1024, fp))
     {
-        char* axiom = strstr(line, "x:");
-        char* angle = strstr(line, "a:");
-        char* iterations = strstr(line, "i:");
+        const char* AxiomString = "axiom:";
+        const char* AngleString = "angle:";
+        const char* IterationsString = "iterations:";
 
-        if (axiom != nullptr)
+        char* axiomStart = strstr(line, AxiomString);
+        char* angleStart = strstr(line, AngleString);
+        char* iterationsStart = strstr(line, IterationsString);
+
+        if (axiomStart != nullptr)
         {
-            SetAxiom(axiom + 2);
+            SetAxiom(axiomStart + strlen(AxiomString));
         }
-        else if (angle != nullptr)
+        else if (angleStart != nullptr)
         {
-            Angle = atof(line + 2);
+            Angle = atof(line + strlen(AngleString));
         }
-        else if (iterations != nullptr)
+        else if (iterationsStart != nullptr)
         {
-            Iterations = atoi(line + 2);
+            Iterations = atoi(line + strlen(IterationsString));
         }
         else if (line[0] > 32 && line[1] == ':')
         {
@@ -208,9 +212,49 @@ void LSystem::AddRuleFromString(const char* String)
     AddRule(*FullString, FullString+ColonOffset+1);
 }
 
-void LSystem::UpdateRulesFromRuleString()
+void LSystem::SaveToFile(const char* Filename)
 {
-    //generate working string
-    //separate each rule, should end in newline
+    if (Filename == nullptr)
+    {
+        return;
+    }
+
+    //attempt to open the file
+    FILE* fp = fopen(Filename, "w");
+
+    //ensure the file was opened
+    if (fp == NULL)
+    {
+        return;
+    }
+
+    //write name
+    if(Name != nullptr)
+    {
+        fprintf(fp, "name:%s\n", Name);
+    }
+
+    //write axiom
+    if(Axiom != nullptr)
+    {
+        fprintf(fp, "axiom:%s\n", Axiom);
+    }
+
+    //write angle
+    fprintf(fp, "angle:%f\n", Angle);
+
+    //write iterations
+    fprintf(fp, "iterations:%d\n", Iterations);
+
+    //write rules
+    for(LS_RewritingRule& Rule : RewritingRules)
+    {
+        if(Rule.Character != ' ')
+        {
+            fprintf(fp, "%c:%s\n", Rule.Character, Rule.RString);
+        }
+    }
+
+    fclose(fp);
 }
 
