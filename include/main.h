@@ -106,8 +106,14 @@ glm::vec3 AxisColors[6] =
 double FixedRotationSpeed = 0.5;
 double ManualRotationSpeed = 30.0;
 
+//left mouse button state
 bool bLMBDown = false;
 bool bLMBHeld = false;
+
+//middle mouse button state
+bool bMMBDown = false;
+bool bMMBHeld = false;
+
 double PreviousMouseXPosition,
         PreviousMouseYPosition;
 //manual rotation inputs, gotten from key inputs

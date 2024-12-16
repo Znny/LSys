@@ -403,17 +403,30 @@ void Tick(double DeltaTime)
 {
     ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
 
-    if(bLMBHeld)
+    //update mouse info if LMB or MMB are held
+    if(bLMBHeld || bMMBHeld)
     {
-        double xPos, yPos;
+        double xPos, yPos, xDif, yDif;
         glfwGetCursorPos(MainWindow, &xPos, &yPos);
-
-        MainCamera.RotateWorld(MainCamera.GetRightVector(), PreviousMouseYPosition - yPos);
-        MainCamera.RotateWorld(MainCamera.GetUpVector(), PreviousMouseXPosition - xPos);
-
+        xDif = PreviousMouseXPosition - xPos;
+        yDif = PreviousMouseYPosition - yPos;
         PreviousMouseXPosition = xPos;
         PreviousMouseYPosition = yPos;
+
+        if(bLMBHeld)
+        {
+            MainCamera.RotateWorld(MainCamera.GetRightVector(), yDif);
+            MainCamera.RotateWorld(MainCamera.GetUpVector(), xDif);
+        }
+        if(bMMBHeld)
+        {
+            glm::vec3 CameraLocation = MainCamera.GetLocation();
+            CameraLocation += MainCamera.GetUpVector() * (float)yDif * -0.01f;
+            CameraLocation += MainCamera.GetRightVector() * (float)xDif * 0.01f;
+            MainCamera.SetLocation(CameraLocation);
+        }
     }
+
     if(ManualYawInput != 0)
     {
         MainCamera.RotateWorld(MainCamera.GetUpVector(), ManualYawInput * ManualRotationSpeed * DeltaTime);
@@ -424,7 +437,7 @@ void Tick(double DeltaTime)
     }
     if(ManualRollInput != 0)
     {
-        MainCamera.AdjustRoll(ManualRollInput * ManualRotationSpeed * DeltaTime);
+        MainCamera.AdjustRoll(-ManualRollInput * ManualRotationSpeed * DeltaTime);
     }
 }
 
@@ -610,6 +623,7 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
         return;
     }
 
+    //handle left mouse button
     if (!bLMBHeld)
     {
         if (bLMBDown)
@@ -626,6 +640,25 @@ void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos)
             bLMBHeld = false;
         }
     }
+
+    //handle middle mouse button
+    if (!bMMBHeld)
+    {
+        if (bMMBDown)
+        {
+            bMMBHeld = true;
+            PreviousMouseXPosition = xPos;
+            PreviousMouseYPosition = yPos;
+        }
+    }
+    else
+    {
+        if (!bMMBDown)
+        {
+            bMMBHeld = false;
+        }
+    }
+
 }
 
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods)
@@ -633,20 +666,30 @@ void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mo
     //call ImGui callback
     ImGui_ImplGlfw_MouseButtonCallback(Window, button, action, mods);
 
-    //only care about LMB
-    if (button != GLFW_MOUSE_BUTTON_LEFT)
+    if(button == GLFW_MOUSE_BUTTON_LEFT)
     {
-        return;
+        //updated LMB state
+        if (action == GLFW_PRESS)
+        {
+            bLMBDown = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            bLMBDown = false;
+        }
     }
 
-    //updated LMB state
-    if (action == GLFW_PRESS)
+    if(button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
-        bLMBDown = true;
-    }
-    else if (action == GLFW_RELEASE)
-    {
-        bLMBDown = false;
+        //updated LMB state
+        if (action == GLFW_PRESS)
+        {
+            bMMBDown = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            bMMBDown = false;
+        }
     }
 }
 
