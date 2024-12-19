@@ -19,11 +19,13 @@ public:
 
     void SetUpdateCallback(void (*UpdateCallbackSignature)());
 
-    void DrawPrimaryMenu(LSystem* ActiveSystem);
+    void DrawSystemMenu(LSystem* ActiveSystem);
+    void DrawMainMenuBar();
+
 
     void UpdateScale(float NewScale);
 
 private:
-    bool bUpdateInRealTime = false;
+
 };
 

@@ -253,7 +253,7 @@ bool InitGraphics()
     // Initialize ImGui
     UI.Init(MainWindow);
     UI.SetUpdateCallback(UpdateVertexBuffers);
-    UI.UpdateScale(1.5);
+    UI.UpdateScale(1.0);
 
     return true;
 }
@@ -446,16 +446,6 @@ void Render(double dt)
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Start ImGui frame
-    UI.BeginFrame();
-
-    UI.DrawPrimaryMenu(&ActiveSystem);
-
-    // Render ImGui
-    UI.EndFrame();
-
-
-
     //update uniform variables, in this case just ViewProjectionMatrix
     glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                        (GLfloat*) &ActiveViewProjectionMatrix);
@@ -471,6 +461,13 @@ void Render(double dt)
         glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
+
+    // Render ImGui elements
+    UI.BeginFrame();
+    //UI.DrawSystemMenu(&ActiveSystem);
+    UI.DrawMainMenuBar();
+    UI.EndFrame();
+
 
     //swap front and back buffers
     glfwSwapBuffers(MainWindow);
@@ -536,11 +533,7 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
     }
 
 
-    if (KeyCode == GLFW_KEY_ESCAPE && Action == GLFW_PRESS)
-    {
-        bRequestedExit = true;
-    }
-    else if (KeyCode == GLFW_KEY_R)
+    if (KeyCode == GLFW_KEY_R)
     {
         PassthroughShaderProgram->ReloadShaderObjects();
     }
