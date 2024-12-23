@@ -44,6 +44,8 @@ add_executable(
         include/rendering/RenderableBase.h
         include/rendering/RenderableBase.cpp
         src/rendering/RenderingContext.cpp
+        src/utility/util.cpp
+        include/utility/util.h
 )
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static")

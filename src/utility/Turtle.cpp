@@ -7,6 +7,7 @@
 #include <cstring>
 #include <utility/logging.hpp>
 #include <utility/logging.inl>
+#include <utility/util.h>
 
 void Turtle::Reset()
 {
@@ -20,44 +21,55 @@ void Turtle::MoveForward(float Distance)
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 {
+    //set starting HSV color, at set to current color
+    glm::vec3 CurrentHSVColor = {26.3, 0.7, .315};
+    CurrentColor = HSVtoRGB(CurrentHSVColor);
+
+    //set current width and how much to decrement when extending via 'F'
     CurrentWidth = System.Distance / 3.141592f;
     float WidthDecrement = CurrentWidth / (3.141592f * 3.141592f * 3.141592f);
 
+    //set source string based on whether we're working off a generated string or the axiom
     char* SourceString = System.GeneratedString != nullptr
                          ? System.GeneratedString
                          : System.Axiom;
+
+    //exit early if the source string is nullptr for some reason
     if (SourceString == nullptr)
     {
         return nullptr;
     }
     size_t StrLength = strlen(SourceString);
 
-    constexpr unsigned int MaxTriangles = 1000000;
+    //specify max number of tris (10mil) and create list to store them all
+    constexpr unsigned int MaxTriangles = 10000000;
     ColoredTriangleList* Triangles = new ColoredTriangleList(MaxTriangles);
 
-    ColoredTriangle Triangle;
 
+    /*
     CurrentColor.r = (rand() % 1000) / 1000.0f;
     CurrentColor.g = (rand() % 1000) / 1000.0f;
     CurrentColor.g = 0.1;
     CurrentColor.b = (rand() % 1000) / 1000.0f;
+     */
 
     LogVerbose("Turtle Processing string of length %d\n", StrLength);
 
+    //iterate over the string, processing symbols as we go
     for(int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
     {
         switch (SourceString[i])
         {
             case 'F':
             {
-                glm::vec3 NextColor;
-                NextColor.r = (rand() % 1000) / 1000.0f;
-                NextColor.g = (rand() % 1000) / 1000.0f;
-                NextColor.g = 0.1;
-                NextColor.b = (rand() % 1000) / 1000.0f;
+                CurrentHSVColor = RGBtoHSV(CurrentColor);
+                CurrentHSVColor.r = fmod(CurrentHSVColor.r + 8.f, 360.0f);
+
+                glm::vec3 NextColor = HSVtoRGB(CurrentHSVColor);
 
                 DrawConeSegment(CurrentWidth, CurrentWidth-WidthDecrement, CurrentColor, NextColor, System.Distance, Triangles);
                 CurrentWidth -= WidthDecrement;
+                CurrentWidth = CurrentWidth <= 0.01 ? 0.01 : CurrentWidth;
                 CurrentColor = NextColor;
                 MoveForward(System.Distance);
             }
