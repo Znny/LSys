@@ -47,12 +47,15 @@ public:
      * @return A list of ColoredTriangles
      */
     ColoredTriangleList* DrawSystem(LSystem& System);
+    void DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles);
 
+    float CurrentWidth = 1.0;
     Transform CurrentTransform;
     glm::vec3 CurrentColor = glm::vec3(1.0, 0.0, 0.0);
 
     struct StateData
     {
+        float CurrentWidth;
         Transform CurrentTransform;
         glm::vec3 CurrentColor;
     };

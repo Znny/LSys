@@ -20,6 +20,9 @@ void Turtle::MoveForward(float Distance)
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 {
+    CurrentWidth = System.Distance / 3.141592f;
+    float WidthDecrement = CurrentWidth / (3.141592f * 3.141592f * 3.141592f);
+
     char* SourceString = System.GeneratedString != nullptr
                          ? System.GeneratedString
                          : System.Axiom;
@@ -52,41 +55,11 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
                 NextColor.g = (rand() % 1000) / 1000.0f;
                 NextColor.g = 0.1;
                 NextColor.b = (rand() % 1000) / 1000.0f;
-                //cache half width
-                glm::vec3 HalfWidth = CurrentTransform.GetRightVector() * 0.1f * System.Distance;
 
-                //get start and end locations
-                glm::vec3 StartLocation = CurrentTransform.GetLocation();
+                DrawConeSegment(CurrentWidth, CurrentWidth-WidthDecrement, CurrentColor, NextColor, System.Distance, Triangles);
+                CurrentWidth -= WidthDecrement;
+                CurrentColor = NextColor;
                 MoveForward(System.Distance);
-                glm::vec3 EndLocation = CurrentTransform.GetLocation();
-                glm::vec3 TriangleVerts[4] =
-                {
-                    StartLocation - HalfWidth,
-                    StartLocation + HalfWidth,
-                    EndLocation - HalfWidth,
-                    EndLocation + HalfWidth
-                };
-                glm::vec3 TriangleColors[4] =
-                {
-                    CurrentColor, CurrentColor,
-                    NextColor, NextColor
-                };
-
-                for(int j = 0; j < 3; j++)
-                    {
-                    Triangle.VertexLocations[j] = TriangleVerts[j];
-                    Triangle.VertexColors[j] = TriangleColors[j];
-                }
-                Triangles->AddTriangle(Triangle);
-
-                Triangle.VertexLocations[0] = TriangleVerts[2];
-                Triangle.VertexLocations[1] = TriangleVerts[1];
-                Triangle.VertexLocations[2] = TriangleVerts[3];
-                Triangle.VertexColors[0] = TriangleColors[2];
-                Triangle.VertexColors[1] = TriangleColors[1];
-                Triangle.VertexColors[2] = TriangleColors[3];
-                Triangles->AddTriangle(Triangle);
-                CurrentColor=NextColor;
             }
             break;
 
@@ -154,14 +127,16 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 
             //start branch
             case '[':
-                BranchStack.Push({CurrentTransform, CurrentColor});
+                BranchStack.Push({CurrentWidth, CurrentTransform, CurrentColor});
             break;
 
             //stop branch
             case ']':
             {
                 StateData Data = BranchStack.Pop();
+                CurrentWidth = Data.CurrentWidth;
                 CurrentTransform = Data.CurrentTransform;
+                CurrentColor = Data.CurrentColor;
             }
             break;
 
@@ -201,5 +176,53 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     }
 
     return Triangles;
+}
+
+void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles)
+{
+    // Define vertices for the cone segment
+    const glm::vec3 start = CurrentTransform.GetLocation();
+    const glm::vec3 end = start + CurrentTransform.GetForwardVector() * length;
+
+    constexpr int numSides = 7; // Number of sides for the cone
+    glm::vec3 circleStart[numSides];
+    glm::vec3 circleEnd[numSides];
+
+    // Generate circular cross sections
+    for (int i = 0; i < numSides; ++i)
+    {
+        float angle = (2.0f * M_PI * i) / numSides;
+        float x = cos(angle);
+        float z = sin(angle);
+        circleStart[i] = start + CurrentTransform.GetRightVector() * (r1 * x)
+                               +CurrentTransform.GetUpVector() * (r1 * z);
+        circleEnd[i] = end + CurrentTransform.GetRightVector() * (r2 * x)
+                           + CurrentTransform.GetUpVector() * (r2 * z);
+    }
+
+    // Generate triangles for the cone
+    for (int CurrentIndex = 0; CurrentIndex < numSides; ++CurrentIndex)
+    {
+        int NextIndex = (CurrentIndex + 1) % numSides;
+
+        ColoredTriangle t1;
+        t1.VertexLocations[0] = circleStart[CurrentIndex];
+        t1.VertexLocations[1] = circleStart[NextIndex];
+        t1.VertexLocations[2] = circleEnd[CurrentIndex];
+        t1.VertexColors[0] = color1;
+        t1.VertexColors[1] = color1;
+        t1.VertexColors[2] = color2;
+
+        ColoredTriangle t2;
+        t2.VertexLocations[0] = circleEnd[NextIndex];
+        t2.VertexLocations[1] = circleEnd[CurrentIndex];
+        t2.VertexLocations[2] = circleStart[NextIndex];
+        t2.VertexColors[0] = color2;
+        t2.VertexColors[1] = color2;
+        t2.VertexColors[2] = color1;
+
+        triangles->AddTriangle(t1);
+        triangles->AddTriangle(t2);
+    }
 }
 
