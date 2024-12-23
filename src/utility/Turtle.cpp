@@ -5,6 +5,8 @@
 #include "utility/Turtle.h"
 #include <stdio.h>
 #include <cstring>
+#include <utility/logging.hpp>
+#include <utility/logging.inl>
 
 void Turtle::Reset()
 {
@@ -36,6 +38,8 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     CurrentColor.g = (rand() % 1000) / 1000.0f;
     CurrentColor.g = 0.1;
     CurrentColor.b = (rand() % 1000) / 1000.0f;
+
+    LogVerbose("Turtle Processing string of length %d\n", StrLength);
 
     for(int i = 0; i < StrLength && Triangles->NumTriangles < MaxTriangles; i++)
     {

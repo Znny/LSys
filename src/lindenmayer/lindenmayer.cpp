@@ -11,7 +11,7 @@
 LS_RewritingRule::LS_RewritingRule(char c, const char *R)
 {
     Character = c;
-    strncat(RString, R, MaxReplacementLength);
+    strncat(RString, R, strnlen(R, MaxReplacementLength));
 }
 
 /** LSystem::LSystem
@@ -34,7 +34,7 @@ void LSystem::SetName(const char* NewName)
  *
  * @param NewAxiom
  */
-void LSystem::SetAxiom(char* NewAxiom)
+void LSystem::SetAxiom(const char* NewAxiom)
 {
     Axiom = strdup(NewAxiom);
 }
@@ -53,7 +53,7 @@ void LSystem::AddRule(char c, const char* R)
 {
     LS_RewritingRule& Rule = RewritingRules[(int) c];
     Rule.Character = c;
-    strncat(Rule.RString, R, MaxReplacementLength);
+    strncat(Rule.RString, R, strnlen(R, MaxReplacementLength));
 }
 
 /** LSystem::Rewrite
@@ -69,14 +69,15 @@ void LSystem::Rewrite()
     char* SourceString = GeneratedString != nullptr
                          ? GeneratedString
                          : Axiom;
+
     if (SourceString == nullptr)
     {
         return;
     }
 
-    LogInfo("rewriting: %d iteration\n", Iterations);
+    LogInfo("rewriting %d times...\n", Iterations);
 
-    const int MaxCharacters = 1000000;
+    constexpr int MaxCharacters = 1000000;
     char WorkingBuffer[MaxCharacters] = {0};
     LogInfo("\n");
 
@@ -88,7 +89,7 @@ void LSystem::Rewrite()
         }
 
         size_t StrLength = strlen(SourceString);
-        int NumGeneratedCharacters = 0;
+        size_t NumGeneratedCharacters = 0;
         for (int c = 0; c < StrLength; c++)
         {
             char& Character = SourceString[c];
@@ -96,16 +97,32 @@ void LSystem::Rewrite()
             {
                 continue;
             }
+
             LS_RewritingRule& Rule = RewritingRules[(int) Character];
-            if (Rule.Character == Character && Rule.RString != nullptr)
+
+            const bool bUsingExplicitRule = Rule.Character == Character && Rule.RString != nullptr;
+
+            //if new length would exceed max characters, exit early
+            const size_t AddedLength = bUsingExplicitRule ? strlen(Rule.RString) : 1;
+            if(NumGeneratedCharacters + AddedLength >= MaxCharacters)
+            {
+                LogWarning("Num generated characters exceeds 10mil limit, stopping...\n");
+                break;
+            }
+
+
+            //concatenate characters
+            if(bUsingExplicitRule)
             {
                 strcat(WorkingBuffer, Rule.RString);
-                NumGeneratedCharacters += strlen(Rule.RString);
             }
             else
             {
-                WorkingBuffer[NumGeneratedCharacters++] = SourceString[c];
+                WorkingBuffer[NumGeneratedCharacters] = SourceString[c];
             }
+
+            //set new length
+            NumGeneratedCharacters += AddedLength;
         }
 
         //if the previously generated string is not null, free it
@@ -122,7 +139,11 @@ void LSystem::Rewrite()
         {
             c = 0;
         }
+
+        LogInfo("rewrite %d complete...\n", i);
     }
+
+    LogInfo("Rewriting complete\n");
 }
 
 void LSystem::Reset()

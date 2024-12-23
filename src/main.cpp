@@ -464,7 +464,7 @@ void Render(double dt)
 
     // Render ImGui elements
     UI.BeginFrame();
-    //UI.DrawSystemMenu(&ActiveSystem);
+    UI.DrawSystemMenu(&ActiveSystem);
     UI.DrawMainMenuBar();
     UI.EndFrame();
 

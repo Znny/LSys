@@ -51,7 +51,7 @@ public:
      * Sets the initial string, or starting point, of the L-System
      * @param NewAxiom - the new axiom string
      */
-    void SetAxiom(char* NewAxiom);
+    void SetAxiom(const char* NewAxiom);
 
     /** SetIterations
      * Sets the number of iterations to be run when Rewrite is called
