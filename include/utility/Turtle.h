@@ -50,15 +50,21 @@ public:
     ColoredTriangleList* DrawSystem(LSystem& System);
     void DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles);
 
+    //whether we are currently defining a polygon or not
+    bool bIsDefiningPolygon = false;
+    //transform when polygon was started via { character
     Transform PolygonStartTransform;
+    //vertices in the current polygon
     std::vector<glm::vec3> polygonVertices;
 
-    bool bIsDefiningPolygon = false;
+    //current width being used when rendering conical sections
     float CurrentWidth = 1.0;
+    //current transform of the turtle
     Transform CurrentTransform;
+    //current color used when adding triangles
     glm::vec3 CurrentColor = glm::vec3(1.0, 0.0, 0.0);
 
-
+    //state data for branches
     struct StateData
     {
         bool bIsDefiningPolygon = false;
