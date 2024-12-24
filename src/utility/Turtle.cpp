@@ -325,7 +325,7 @@ void Turtle::TurnAround()
 void Turtle::RotateToVertical()
 {
     //rolls the turtle around its own axis so that vector L-> pointing to the left of the turtle is brought to a horizoental position
-    //consequently, the branch plane is 'closest tot he horizontal plane'.
+    //consequently, the branch plane is 'closest to the horizontal plane'.
     // as required by Honda's model. From a technical point of view, $ modifies the turtle orientation in space according to the formulae
     /* -->    -->   -->
      *  L   =  V  x  H
