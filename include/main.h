@@ -27,6 +27,8 @@ bool Init(int argc, char** argv);
 
 //sub-initialization functions
 bool InitGraphics();
+bool InitLightData();
+
 bool InitInput();
 bool InitLSystems();
 
@@ -41,6 +43,7 @@ void Run();
 
 void UpdateTiming(GLFWwindow* window);
 void UpdateVertexBuffers();
+void UpdateLightData();
 void Tick(double dt);
 void Render(double dt);
 
@@ -153,6 +156,19 @@ GLuint ColoredVertexBufferObject_Normals;
 GLuint AxesVAO;
 GLuint AxesVBO_Positions;
 GLuint AxesVBO_Colors;
+
+GLuint LightVAO;
+GLuint LightVBO_Positions;
+GLuint LightVBO_Colors;
+
+glm::vec3 LightLocation = {0.0, 0.0, 0.0};
+glm::vec3 LightColor = glm::vec3(1.0);
+glm::vec3 AmbientColor = glm::vec3(1.0);
+float AmbientStrength = 1.0f;
+constexpr int VerticalSections = 5;
+constexpr int HorizontalSections = 5;
+constexpr float LightRadius = 2.0f;
+int LightVertCount = 0;
 
 //UI manager
 UIManager UI;

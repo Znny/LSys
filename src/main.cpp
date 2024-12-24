@@ -257,6 +257,9 @@ bool InitGraphics()
         glEnableVertexAttribArray(1);
     }
 
+    InitLightData();
+
+
     //set clear color
     constexpr double Red = 0.0f;
     constexpr double Green = 0.0f;
@@ -265,8 +268,12 @@ bool InitGraphics()
 
     // Initialize ImGui
     UI.Init(MainWindow);
-    UI.SetUpdateCallback(UpdateVertexBuffers);
     UI.UpdateScale(1.0);
+
+    UI.SetUpdateCallback(UpdateVertexBuffers);
+
+    UI.SetLightUpdateCallback(UpdateLightData);
+    UI.SetLightingVariables(&LightLocation, &LightColor, &AmbientColor, &AmbientStrength);
 
     return true;
 }
@@ -479,23 +486,34 @@ void Render(double dt)
     //update uniform variables, in this case just ViewProjectionMatrix
     //glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
     //                   (GLfloat*) &ActiveViewProjectionMatrix);
+    //render axes and light
     {
         //enable the passthrough shader program
         glUseProgram(PassthroughShaderProgram->GetProgramID());
-        glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+        glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"),
+                           1,
+                           GL_FALSE,
                            (GLfloat*) &ActiveViewProjectionMatrix);
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
         glDrawArrays(GL_LINES, 0, 6);
 
+        //LogInfo("LightVertCount rendering %d verts\n", LightVertCount);
+        glBindVertexArray(LightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, LightVertCount);
+
         //enable the passthrough shader program
+        glBindVertexArray(ColoredVertexArrayObject);
         glUseProgram(HardCodedLightShaderProgram->GetProgramID());
-        glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+        glUniformMatrix4fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                            (GLfloat*) &ActiveViewProjectionMatrix);
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightPosition"), 1, (GLfloat*) &LightLocation);
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightColor"), 1, (GLfloat*) &LightColor);
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientColor"), 1, (GLfloat*) &AmbientColor);
+        glUniform1f(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientStrength"), AmbientStrength);
 
         //bind and draw ColoredVertexArrayObject
-        glBindVertexArray(ColoredVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
     }
 
@@ -503,6 +521,7 @@ void Render(double dt)
     UI.BeginFrame();
     UI.DrawSystemMenu(&ActiveSystem);
     UI.DrawMainMenuBar();
+    UI.DrawLightMenu();
     UI.EndFrame();
 
 
@@ -774,5 +793,120 @@ void UpdateTiming(GLFWwindow* Window)
         FrameCount = 0;
     }
     FrameCount++;
+}
+
+bool InitLightData()
+{
+    {
+        //create vertax array object for Light rendering
+        glGenVertexArrays(1, &LightVAO);
+        glBindVertexArray(LightVAO);
+
+        //create vbo for Light vertex positions
+        glGenBuffers(1, &LightVBO_Positions);
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
+        //specify vertex packing for locations, and enable the attribute array
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
+
+        //create vbo for Light vertex colors
+        glGenBuffers(1, &LightVBO_Colors);
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
+        //specify vertex packing for colors, and enable the attribute array
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+
+    }
+
+    UpdateLightData();
+
+    return true;
+}
+
+
+// Function to generate a sphere
+std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned int LongitudeSegments, unsigned int LatitudeSegments) {
+    std::vector<glm::vec3> vertices;
+
+    for (unsigned int lat = 0; lat <= LatitudeSegments; ++lat) {
+        float theta = glm::radians(180.0f * static_cast<float>(lat) / LatitudeSegments); // Latitude angle
+        float sinTheta = std::sin(theta);
+        float cosTheta = std::cos(theta);
+
+        for (unsigned int lon = 0; lon <= LongitudeSegments; ++lon) {
+            float phi = glm::radians(360.0f * static_cast<float>(lon) / LongitudeSegments); // Longitude angle
+            float sinPhi = std::sin(phi);
+            float cosPhi = std::cos(phi);
+
+            // Calculate vertex position
+            glm::vec3 vertex = Center + Radius * glm::vec3(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
+            vertices.push_back(vertex);
+        }
+    }
+
+    std::vector<glm::vec3> triangles;
+
+    // Create triangles from the sphere vertices
+    for (unsigned int lat = 0; lat < LatitudeSegments; ++lat) {
+        for (unsigned int lon = 0; lon < LongitudeSegments; ++lon) {
+            unsigned int first = lat * (LongitudeSegments + 1) + lon;
+            unsigned int second = first + LongitudeSegments + 1;
+
+            // First triangle of the quad
+            triangles.push_back(vertices[first]);
+            triangles.push_back(vertices[second]);
+            triangles.push_back(vertices[first + 1]);
+
+            // Second triangle of the quad
+            triangles.push_back(vertices[second]);
+            triangles.push_back(vertices[second + 1]);
+            triangles.push_back(vertices[first + 1]);
+        }
+    }
+
+    return triangles;
+}
+
+void UpdateLightData()
+{
+    std::vector<glm::vec3> LightVerts = GenerateSphere(LightLocation, LightRadius, VerticalSections, HorizontalSections);
+    LightVertCount = LightVerts.size();
+    //LightVertCount = 1500;
+
+    LogInfo("LightVertCount = %d", LightVertCount);
+    glm::vec3* VertLocations = (glm::vec3*)malloc(LightVertCount * sizeof(glm::vec3));
+    glm::vec3* VertColors = (glm::vec3*)malloc(LightVertCount * sizeof(glm::vec3));
+
+    for(int i = 0; i < LightVertCount; i++)
+    {
+        VertLocations[i] = LightVerts[i];
+        VertColors[i] = LightColor;
+        /*
+        VertLocations[i].r = 0.5 - (rand() % 1000) / 1000.0;
+        VertLocations[i].g = 0.5 - (rand() % 1000) / 1000.0;
+        VertLocations[i].b = 0.5 - (rand() % 1000) / 1000.0;
+
+        VertColors[i].r = (rand() % 1000) / 1000.0;
+        VertColors[i].g = (rand() % 1000) / 1000.0;
+        VertColors[i].b = (rand() % 1000) / 1000.0;
+        //*/
+
+    }
+
+    {
+        glBindVertexArray(LightVAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
+        glBufferData(GL_ARRAY_BUFFER, LightVertCount * sizeof(glm::vec3),
+                     (GLfloat*) VertLocations, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
+        glBufferData(GL_ARRAY_BUFFER, LightVertCount * sizeof(glm::vec3),
+                     (GLfloat*) VertColors, GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+    }
 }
 

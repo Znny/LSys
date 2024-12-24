@@ -44,6 +44,11 @@ void UIManager::SetUpdateCallback(void(*UpdateCallbackSignature)())
     UpdateCallback = UpdateCallbackSignature;
 }
 
+void UIManager::SetLightUpdateCallback(void (* LightUpdateCallbackSignature)())
+{
+    LightUpdateCallback = LightUpdateCallbackSignature;
+}
+
 void SliderWithTextInput(const char* label, float* value, float min, float max)
 {
     static bool textInputActive = false; // Flag to track if text input is active
@@ -86,8 +91,6 @@ void SliderWithTextInput(const char* label, float* value, float min, float max)
 void UIManager::DrawSystemMenu(LSystem* ActiveSystem)
 {
     ImGui::Begin("L-System Configuration"); // Start a new window
-
-    ImGui::ShowIDStackToolWindow();
 
     // System Name
     static char systemName[64] = "Default System";
@@ -242,4 +245,36 @@ void UIManager::DrawMainMenuBar()
 
     ImGui::EndMainMenuBar();
 }
+
+void UIManager::SetLightingVariables(
+        glm::vec3* LightLocation,
+        glm::vec3* LightColor,
+        glm::vec3* AmbientColor,
+        float* AmbientStrength)
+{
+    LightingInfo.LightLocation = LightLocation;
+    LightingInfo.LightColor = LightColor;
+    LightingInfo.AmbientColor = AmbientColor;
+    LightingInfo.AmbientStrength = AmbientStrength;
+}
+
+void UIManager::DrawLightMenu()
+{
+    ImGui::Begin("Lighting");
+
+    if(ImGui::InputFloat3("Light Location", (float*)LightingInfo.LightLocation))
+    {
+        LightUpdateCallback();
+    }
+    if(ImGui::InputFloat3("Light Color", (float*)LightingInfo.LightColor))
+    {
+        LightUpdateCallback();
+    }
+
+    ImGui::InputFloat3("Ambient Color", (float*)LightingInfo.AmbientColor);
+    ImGui::InputFloat("Ambient Strength", LightingInfo.AmbientStrength);
+
+    ImGui::End(); // End the window
+}
+
 
