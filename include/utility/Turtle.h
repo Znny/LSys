@@ -4,6 +4,7 @@
 #ifndef TURTLE_H
 #define TURTLE_H
 
+#include <vector>
 #include "Transform.h"
 #include "rendering/ColoredTriangle.h"
 #include "lindenmayer/lindenmayer.h"
@@ -21,8 +22,8 @@ public:
     void MoveForward(float Distance);
 
     //special movement
-    //void TurnAround();
-    //void RotateToVertical();
+    void TurnAround();
+    void RotateToVertical();
 
     //branch management
     void StartBranch();
@@ -33,10 +34,10 @@ public:
     //void MoveForwardAndDraw();
 
     //polygon creation
-    //void StartPolygon();
+    void StartPolygon();
     //void RecordVertex();
     //void DrawForwardNoRecord();
-    //void CompletePolygon();
+    void CompletePolygon(ColoredTriangleList* triangles);
 
     //void IncorporatePredefinedSurface();
     //void DecrementSegmentDiameter();
@@ -49,12 +50,18 @@ public:
     ColoredTriangleList* DrawSystem(LSystem& System);
     void DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles);
 
+    Transform PolygonStartTransform;
+    std::vector<glm::vec3> polygonVertices;
+
+    bool bIsDefiningPolygon = false;
     float CurrentWidth = 1.0;
     Transform CurrentTransform;
     glm::vec3 CurrentColor = glm::vec3(1.0, 0.0, 0.0);
 
+
     struct StateData
     {
+        bool bIsDefiningPolygon = false;
         float CurrentWidth;
         Transform CurrentTransform;
         glm::vec3 CurrentColor;

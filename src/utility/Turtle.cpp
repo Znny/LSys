@@ -16,7 +16,15 @@ void Turtle::Reset()
 
 void Turtle::MoveForward(float Distance)
 {
-    CurrentTransform.SetLocation(CurrentTransform.GetLocation() + CurrentTransform.GetForwardVector() * Distance);
+    if(bIsDefiningPolygon)
+    {
+        CurrentTransform.SetLocation(CurrentTransform.GetLocation() + CurrentTransform.GetForwardVector() * (Distance-CurrentWidth));
+        polygonVertices.push_back(CurrentTransform.GetLocation());
+    }
+    else
+    {
+        CurrentTransform.SetLocation(CurrentTransform.GetLocation() + CurrentTransform.GetForwardVector() * Distance);
+    }
 }
 
 ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
@@ -69,7 +77,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 
                 DrawConeSegment(CurrentWidth, CurrentWidth-WidthDecrement, CurrentColor, NextColor, System.Distance, Triangles);
                 CurrentWidth -= WidthDecrement;
-                CurrentWidth = CurrentWidth <= 0.01 ? 0.01 : CurrentWidth;
+                CurrentWidth = CurrentWidth <= 0.005f ? 0.005f : CurrentWidth;
                 CurrentColor = NextColor;
                 MoveForward(System.Distance);
             }
@@ -105,56 +113,32 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 
             //Turn Around
             case '|':
-                CurrentTransform.AdjustYaw(180);
+                TurnAround();
             break;
 
             case '$':
             {
-                //todo: implement rotate turtle to vertical (pg 57)
-                //rolls the turtle around its own axis so that vector L-> pointing to the left of the turtle is brought to a horizoental position
-                //consequently, the branch plane is 'closest tot he horizontal plane'.
-                // as required by Honda's model. From a technical point of view, $ modifies the turtle orientation in space according to the formulae
-                /* -->    -->   -->
-                 *  L   =  V  x  H
-                 *       -----------
-                 *       |-->   -->|
-                 *       | V  x  H |
-                 *
-                 * H = Heading  L = Left  U = Up
-                 * V is the direction opposite to gravity, and |A| denotes the length of vector A
-                 *
-                 * L = V cross H / length(V cross H)
-                 */
-
-                glm::vec3 NewLeftDir = glm::cross(Transform::WorldUp, CurrentTransform.GetForwardVector());
-                NewLeftDir = NewLeftDir / glm::length(NewLeftDir);
-
-                glm::vec3 NewUpDir = glm::cross(CurrentTransform.GetForwardVector(), NewLeftDir);
-                glm::normalize(NewUpDir);
-
-                glm::mat3 RotationMatrix(CurrentTransform.GetForwardVector(), NewUpDir, NewLeftDir);
-                CurrentTransform.SetRotation(RotationMatrix);
+                RotateToVertical();
             }
             break;
 
             //start branch
             case '[':
-                BranchStack.Push({CurrentWidth, CurrentTransform, CurrentColor});
+                StartBranch();
             break;
 
             //stop branch
             case ']':
             {
-                StateData Data = BranchStack.Pop();
-                CurrentWidth = Data.CurrentWidth;
-                CurrentTransform = Data.CurrentTransform;
-                CurrentColor = Data.CurrentColor;
+                CompleteBranch();
             }
             break;
 
             //begin polygon
             case '{':
-                //todo: implement start a polygon
+            {
+                StartPolygon();
+            }
             break;
 
             case 'G':
@@ -166,7 +150,9 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             break;
 
             case '}':
-                //todo: implement complete a polygon
+            {
+                CompletePolygon(Triangles);
+            }
             break;
 
             case '~':
@@ -196,7 +182,7 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
     const glm::vec3 start = CurrentTransform.GetLocation();
     const glm::vec3 end = start + CurrentTransform.GetForwardVector() * length;
 
-    constexpr int numSides = 7; // Number of sides for the cone
+    constexpr int numSides = 11; // Number of sides for the cone
     glm::vec3 circleStart[numSides];
     glm::vec3 circleEnd[numSides];
 
@@ -204,12 +190,15 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
     for (int i = 0; i < numSides; ++i)
     {
         float angle = (2.0f * M_PI * i) / numSides;
+        float angle2= angle + (2.0f * M_PI * 0.5) / numSides;
         float x = cos(angle);
         float z = sin(angle);
+        float x2 = cos(angle2);
+        float z2 = sin(angle2);
         circleStart[i] = start + CurrentTransform.GetRightVector() * (r1 * x)
                                +CurrentTransform.GetUpVector() * (r1 * z);
-        circleEnd[i] = end + CurrentTransform.GetRightVector() * (r2 * x)
-                           + CurrentTransform.GetUpVector() * (r2 * z);
+        circleEnd[i] = end + CurrentTransform.GetRightVector() * (r2 * x2)
+                           + CurrentTransform.GetUpVector() * (r2 * z2);
     }
 
     // Generate triangles for the cone
@@ -218,23 +207,145 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
         int NextIndex = (CurrentIndex + 1) % numSides;
 
         ColoredTriangle t1;
-        t1.VertexLocations[0] = circleStart[CurrentIndex];
+        //set vertex locations
+        t1.VertexLocations[0] = circleEnd[CurrentIndex];
         t1.VertexLocations[1] = circleStart[NextIndex];
-        t1.VertexLocations[2] = circleEnd[CurrentIndex];
+        t1.VertexLocations[2] = circleStart[CurrentIndex];
+        //assign colors
         t1.VertexColors[0] = color1;
         t1.VertexColors[1] = color1;
         t1.VertexColors[2] = color2;
+        //calculate normals
+        glm::vec3 v1 = t1.VertexLocations[2] - t1.VertexLocations[0];
+        glm::vec3 v2 = t1.VertexLocations[1] - t1.VertexLocations[0];
+        glm::vec3 normal = glm::cross(v1, v2);
+        for(int i = 0; i < 3; i++)
+        {
+            t1.VertexNormals[i] = normal;
+        }
+
 
         ColoredTriangle t2;
-        t2.VertexLocations[0] = circleEnd[NextIndex];
+        t2.VertexLocations[0] = circleStart[NextIndex];
         t2.VertexLocations[1] = circleEnd[CurrentIndex];
-        t2.VertexLocations[2] = circleStart[NextIndex];
+        t2.VertexLocations[2] = circleEnd[NextIndex];
         t2.VertexColors[0] = color2;
         t2.VertexColors[1] = color2;
         t2.VertexColors[2] = color1;
+        v1 = t2.VertexLocations[2] - t2.VertexLocations[0];
+        v2 = t2.VertexLocations[1] - t2.VertexLocations[0];
+        normal = glm::cross(v1, v2);
+        for(int i = 0; i < 3; i++)
+        {
+            t2.VertexNormals[i] = normal;
+        }
 
         triangles->AddTriangle(t1);
         triangles->AddTriangle(t2);
     }
+}
+
+void Turtle::StartBranch()
+{
+    BranchStack.Push({bIsDefiningPolygon, CurrentWidth, CurrentTransform, CurrentColor});
+}
+
+void Turtle::CompleteBranch()
+{
+    StateData Data = BranchStack.Pop();
+    bIsDefiningPolygon = Data.bIsDefiningPolygon;
+    CurrentWidth = Data.CurrentWidth;
+    CurrentTransform = Data.CurrentTransform;
+    CurrentColor = Data.CurrentColor;
+}
+
+void Turtle::StartPolygon()
+{
+    //set ourselves to be
+    bIsDefiningPolygon = true;
+    PolygonStartTransform = CurrentTransform;
+    polygonVertices.push_back(CurrentTransform.GetLocation());
+}
+
+void Turtle::CompletePolygon(ColoredTriangleList* triangles)
+{
+    bIsDefiningPolygon = false;
+
+    //remove last vertex if it matches the first, as we're going to iterate through them
+    if(polygonVertices.size() > 1 && polygonVertices[0] == polygonVertices[polygonVertices.size()-1])
+    {
+        polygonVertices.pop_back();
+    }
+
+    //use static polygon color
+    glm::vec3 color = {0.1f, 0.3f, 0.2f};
+
+    //placeholder top and bottom triangles we're working with
+    //top triangle always has the same start vertex, as we're filling a polygon
+    //color also stays the same throughout
+    ColoredTriangle TopTriangle, BottomTriangle;
+    TopTriangle.VertexLocations[0] = polygonVertices[0];
+    TopTriangle.VertexColors[0] = BottomTriangle.VertexColors[0] =  color;
+    TopTriangle.VertexColors[1] = BottomTriangle.VertexColors[1] =  color;
+    TopTriangle.VertexColors[2] = BottomTriangle.VertexColors[2] =  color;
+
+    //for each polygon other than the first, create a triangle with the next two vertices in the sequence
+    for(int i = 1; i < polygonVertices.size()-1; i++)
+    {
+        //set vertices 1 and 2 of the triangle to polgon vertices i and i+1, and keep track of them
+        glm::vec3 v1 = TopTriangle.VertexLocations[1] = polygonVertices[i];
+        glm::vec3 v2 = TopTriangle.VertexLocations[2] = polygonVertices[i + 1];
+
+        //subtract constant VertexLocations[0] from both and calculate normal based on it
+        v1 -= TopTriangle.VertexLocations[0];
+        v2 -= TopTriangle.VertexLocations[0];
+        glm::vec3 TopTriangleNormal = glm::cross(v2, v1);
+
+        //set normals for both triangles, set location of bottom triangle to slightly below top triangle, and flip winding
+        for(int j = 0; j < 3; j++)
+        {
+            TopTriangle.VertexNormals[j] = TopTriangleNormal;
+            BottomTriangle.VertexNormals[j] = -TopTriangleNormal;
+            BottomTriangle.VertexLocations[j] = TopTriangle.VertexLocations[2-j] - (PolygonStartTransform.GetUpVector() * .001f);
+        }
+
+        //add top and bottom triangles to our list
+        triangles->AddTriangle(TopTriangle);
+        triangles->AddTriangle(BottomTriangle);
+    }
+
+    polygonVertices.clear();
+}
+
+void Turtle::TurnAround()
+{
+    CurrentTransform.AdjustYaw(180);
+}
+
+void Turtle::RotateToVertical()
+{
+    //rolls the turtle around its own axis so that vector L-> pointing to the left of the turtle is brought to a horizoental position
+    //consequently, the branch plane is 'closest tot he horizontal plane'.
+    // as required by Honda's model. From a technical point of view, $ modifies the turtle orientation in space according to the formulae
+    /* -->    -->   -->
+     *  L   =  V  x  H
+     *       -----------
+     *       |-->   -->|
+     *       | V  x  H |
+     *
+     * H = Heading  L = Left  U = Up
+     * V is the direction opposite to gravity, and |A| denotes the length of vector A
+     *
+     * L = V cross H / length(V cross H)
+     */
+
+    glm::vec3 NewLeftDir = glm::cross(Transform::WorldUp, CurrentTransform.GetForwardVector());
+    NewLeftDir = NewLeftDir / glm::length(NewLeftDir);
+
+    glm::vec3 NewUpDir = glm::cross(CurrentTransform.GetForwardVector(), NewLeftDir);
+    glm::normalize(NewUpDir);
+
+    glm::mat3 RotationMatrix(CurrentTransform.GetForwardVector(), NewUpDir, NewLeftDir);
+    CurrentTransform.SetRotation(RotationMatrix);
 }
 

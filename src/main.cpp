@@ -25,6 +25,10 @@ std::shared_ptr<Rendering::ShaderProgram> PassthroughShaderProgram;
 std::shared_ptr<Rendering::ShaderObject> PassthroughVertexShader;
 std::shared_ptr<Rendering::ShaderObject> PassthroughFragmentShader;
 
+std::shared_ptr<Rendering::ShaderProgram> HardCodedLightShaderProgram;
+std::shared_ptr<Rendering::ShaderObject> HardCodedLightVertexShader;
+std::shared_ptr<Rendering::ShaderObject> HardCodedLightFragmentShader;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Usage()
@@ -162,6 +166,7 @@ bool InitGraphics()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
+
     const char* Title = "GLBP";
     //attempt to create the window
     MainWindow = glfwCreateWindow(Width, Height, Title, nullptr, nullptr);
@@ -196,6 +201,10 @@ bool InitGraphics()
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
+    //enable back face culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     shaderManager = Rendering::ShaderManager::Get();
     shaderManager->Initialize();
 
@@ -203,6 +212,10 @@ bool InitGraphics()
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
     PassthroughFragmentShader = shaderManager->LoadShader("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
     PassthroughVertexShader = shaderManager->LoadShader("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
+
+    HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", "../resource/shader/HCLight_passthrough.vs", "../resource/shader/HCLight_passthrough.fs");
+    HardCodedLightFragmentShader = shaderManager->LoadShader("../resource/shader/HCLight_passthrough.fs", GL_FRAGMENT_SHADER);
+    HardCodedLightVertexShader = shaderManager->LoadShader("../resource/shader/HCLight_passthrough.vs", GL_VERTEX_SHADER);
 
     //compile vert and frag shaders
     PassthroughVertexShader->Compile();
@@ -277,6 +290,12 @@ bool InitLSystems()
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
+
+        //specify color layout, and enable vertex attribute array
+        glGenBuffers(1, &ColoredVertexBufferObject_Normals);
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Normals);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
     }
 
     UpdateVertexBuffers();
@@ -305,6 +324,7 @@ void UpdateVertexBuffers()
     //allocate memory for vertex locations and colors
     auto* VertLocations = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations));
     auto* VertColors = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors));
+    auto* VertNormals = (glm::vec3*) malloc(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexNormals));
 
     //iterate over all vertices of all triangles, and set vert locations and colors in their respective arrays
     for (int TriangleIndex = 0; TriangleIndex < TriangleList->NumTriangles; TriangleIndex++)
@@ -313,9 +333,11 @@ void UpdateVertexBuffers()
         {
             glm::vec3& vert = TriangleList->TriData[TriangleIndex].VertexLocations[VertIndex];
             glm::vec3& color = TriangleList->TriData[TriangleIndex].VertexColors[VertIndex];
+            glm::vec3& normal = TriangleList->TriData[TriangleIndex].VertexNormals[VertIndex];
 
             VertLocations[TriangleIndex * 3 + VertIndex] = vert;
             VertColors[TriangleIndex * 3 + VertIndex] = color;
+            VertNormals[TriangleIndex * 3 + VertIndex] = normal;
         }
     }
 
@@ -343,7 +365,6 @@ void UpdateVertexBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
         glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
                      (GLfloat*) VertLocations, GL_STATIC_DRAW);
-
         //specify location layout, and enable vertex attribute array
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
@@ -351,13 +372,22 @@ void UpdateVertexBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
         glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
                      (GLfloat*) VertColors, GL_STATIC_DRAW);
-
         //specify color layout, and enable vertex attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
+
+        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Normals);
+        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexNormals),
+                     (GLfloat*) VertNormals, GL_STATIC_DRAW);
+        //specify color layout, and enable vertex attribute array
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(2);
     }
+
+    //free heap-allocated memory
     free(VertLocations);
     free(VertColors);
+    free(VertNormals);
 }
 
 
@@ -447,15 +477,22 @@ void Render(double dt)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //update uniform variables, in this case just ViewProjectionMatrix
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ActiveViewProjectionMatrix);
+    //glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+    //                   (GLfloat*) &ActiveViewProjectionMatrix);
     {
         //enable the passthrough shader program
         glUseProgram(PassthroughShaderProgram->GetProgramID());
+        glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+                           (GLfloat*) &ActiveViewProjectionMatrix);
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
         glDrawArrays(GL_LINES, 0, 6);
+
+        //enable the passthrough shader program
+        glUseProgram(HardCodedLightShaderProgram->GetProgramID());
+        glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+                           (GLfloat*) &ActiveViewProjectionMatrix);
 
         //bind and draw ColoredVertexArrayObject
         glBindVertexArray(ColoredVertexArrayObject);
@@ -536,6 +573,7 @@ void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Ac
     if (KeyCode == GLFW_KEY_R)
     {
         PassthroughShaderProgram->ReloadShaderObjects();
+        HardCodedLightShaderProgram->ReloadShaderObjects();
     }
     else if (KeyCode == GLFW_KEY_RIGHT)
     {

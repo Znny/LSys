@@ -147,6 +147,7 @@ constexpr double FoV_y = glm::radians(FoV_y_degrees);
 GLuint ColoredVertexArrayObject;
 GLuint ColoredVertexBufferObject_Positions;
 GLuint ColoredVertexBufferObject_Colors;
+GLuint ColoredVertexBufferObject_Normals;
 
 //axes triangle vao/vbo etc.
 GLuint AxesVAO;
