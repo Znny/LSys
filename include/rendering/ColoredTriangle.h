@@ -18,11 +18,13 @@ struct ColoredTriangle
         {
             VertexLocations[i] = glm::vec3(0);
             VertexColors[i] = glm::vec3(0);
+            VertexNormals[i] = glm::vec3(0);
         }
     }
 
     glm::vec3 VertexLocations[3]{};
     glm::vec3 VertexColors[3]{};
+    glm::vec3 VertexNormals[3]{};
 
     void RandomizeColors()
     {
