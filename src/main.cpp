@@ -1,22 +1,25 @@
 //
 // Created by Ryan on 5/22/2024.
 //
-#include <cstring>
-#include "utility/logging.hpp"
-
-#include "../lib/imgui/imgui.h"
-#include "../lib/imgui/backends/imgui_impl_glfw.h"
-#include "../lib/imgui/backends/imgui_impl_opengl3.h"
-///opengl extension loader and glfw
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include "main.h"
 
+//std
+#include <cstring>
+
+//utility
+#include "utility/logging.hpp"
+#include "utility/util.h"
+
+//imgui
+#include "../lib/imgui/imgui.h"
+#include "../lib/imgui/backends/imgui_impl_glfw.h"
+#include "../lib/imgui/backends/imgui_impl_opengl3.h"
+
+//rendering
 #include "rendering/ShaderProgram.h"
 #include "rendering/ShaderObject.h"
 #include "rendering/ShaderManager.h"
-#include "utility/util.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,22 +29,6 @@ std::shared_ptr<Rendering::ShaderProgram> PassthroughShaderProgram;
 std::shared_ptr<Rendering::ShaderProgram> HardCodedLightShaderProgram;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Usage()
-{
-    LogInfo("usage: lsys [OPTIONS]\n");
-    LogInfo("OPTIONS:\n");
-    LogInfo("\t-h, --help           Display this help string and exit\n");
-    LogInfo("\n");
-    LogInfo("\t-x, --axiom          Specify initial string to generate from\n");
-    LogInfo("\t-i, --iterations     Specify number of rewriting iterations to perform\n");
-    LogInfo("\t          [NOTE] this grows exponentially\n");
-    LogInfo("\t-a, --angle          Specify turtle turn angle\n");
-    LogInfo("\t-d, --distance       Specify turtle move distance\n");
-    LogInfo("\t-L, --load           Specify a file to load an lsystem from\n");
-    LogInfo("\t-rs, --resolution    Specify initial window resolution, WidthxHeight\n");
-    LogInfo("\t\n");
-}
 
 int main(int argc, char** argv)
 {
@@ -62,6 +49,22 @@ int main(int argc, char** argv)
     Cleanup();
 
     return 0;
+}
+
+void Usage()
+{
+    LogInfo("usage: lsys [OPTIONS]\n");
+    LogInfo("OPTIONS:\n");
+    LogInfo("\t-h, --help           Display this help string and exit\n");
+    LogInfo("\n");
+    LogInfo("\t-x, --axiom          Specify initial string to generate from\n");
+    LogInfo("\t-i, --iterations     Specify number of rewriting iterations to perform\n");
+    LogInfo("\t          [NOTE] this grows exponentially\n");
+    LogInfo("\t-a, --angle          Specify turtle turn angle\n");
+    LogInfo("\t-d, --distance       Specify turtle move distance\n");
+    LogInfo("\t-L, --load           Specify a file to load an lsystem from\n");
+    LogInfo("\t-rs, --resolution    Specify initial window resolution, WidthxHeight\n");
+    LogInfo("\t\n");
 }
 
 //process program arguments, prepping active L-system for iteration and geometry generation
@@ -133,9 +136,15 @@ bool Init(int argc, char** argv)
     ProcessArguments(argc, argv);
 
     LogInfo("initializing...\n");
+    if(!InitGLFW())
+    {
+        LogInfo("could not initialize GLFW.\n");
+        return false;
+    }
 
     if (!InitGraphics())
     {
+        LogInfo("could not initialize graphics.\n");
         return false;
     }
 
@@ -145,7 +154,7 @@ bool Init(int argc, char** argv)
     return true;
 }
 
-bool InitGraphics()
+bool InitGLFW()
 {
     //attempt initializing GLFW
     bGLFWInitialized = glfwInit();
@@ -174,6 +183,11 @@ bool InitGraphics()
     //make the newly created opengl context current
     glfwMakeContextCurrent(MainWindow);
 
+    return true;
+}
+
+bool InitGraphics()
+{
     //load gl extensions
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
@@ -208,6 +222,12 @@ bool InitGraphics()
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
     HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", "../resource/shader/HCLight_passthrough.vs", "../resource/shader/HCLight_passthrough.fs");
 
+    //initialize world axes
+    InitWorldAxes();
+
+    //initialize light data
+    InitLightData();
+
     //initialize L systems
     InitLSystems();
 
@@ -220,32 +240,6 @@ bool InitGraphics()
 
     //set active view projection matrix uniform
     ActiveViewProjectionMatrix = MainCamera.GetViewProjectionMatrix();
-    glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
-                       (GLfloat*) &ActiveViewProjectionMatrix);
-    {
-        //create vertax array object for axes rendering
-        glGenVertexArrays(1, &AxesVAO);
-        glBindVertexArray(AxesVAO);
-
-        //create vbo for axes verex positions
-        glGenBuffers(1, &AxesVBO_Positions);
-        glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
-        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisVertices, GL_STATIC_DRAW);
-        //specify vertex packing for locations, and enable the attribute array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
-
-        //create vbo for axes vertex colors
-        glGenBuffers(1, &AxesVBO_Colors);
-        glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
-        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisColors, GL_STATIC_DRAW);
-        //specify vertex packing for colors, and enable the attribute array
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
-    }
-
-    InitLightData();
-
 
     //set clear color
     constexpr double Red = 0.0f;
@@ -257,67 +251,90 @@ bool InitGraphics()
     UIManager::Init(MainWindow);
     UIManager::UpdateScale(1.0);
 
+    //set system callback
     UI.SetUpdateCallback(UpdateVertexBuffers);
 
-    UI.SetLightUpdateCallback(UpdateLightData);
+    //setup UI lighting variables and callback
     UI.SetLightingVariables(&LightLocation, &LightColor, &AmbientColor, &AmbientStrength);
+    UI.SetLightUpdateCallback(UpdateLightData);
 
     return true;
 }
 
 bool InitLSystems()
 {
-    {
-        //create vertax array object for storing info about bound objects and what to render
-        glGenVertexArrays(1, &ColoredVertexArrayObject);
-        glBindVertexArray(ColoredVertexArrayObject);
+    //create vertax array object for storing info about bound objects and what to render
+    glGenVertexArrays(1, &ColoredVertexArrayObject);
+    glBindVertexArray(ColoredVertexArrayObject);
 
-        //create vertex buffer for storing per-vertex data
-        //specify location layout, and enable vertex attribute array
-        glGenBuffers(1, &ColoredVertexBufferObject_Positions);
-        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
+    //create vertex buffer for storing per-vertex data
+    //specify location layout, and enable vertex attribute array
+    glGenBuffers(1, &ColoredVertexBufferObject_Positions);
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(0);
 
-        //specify color layout, and enable vertex attribute array
-        glGenBuffers(1, &ColoredVertexBufferObject_Colors);
-        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
+    //specify color layout, and enable vertex attribute array
+    glGenBuffers(1, &ColoredVertexBufferObject_Colors);
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(1);
 
-        //specify color layout, and enable vertex attribute array
-        glGenBuffers(1, &ColoredVertexBufferObject_Normals);
-        glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Normals);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
-    }
+    //specify color layout, and enable vertex attribute array
+    glGenBuffers(1, &ColoredVertexBufferObject_Normals);
+    glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Normals);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(1);
 
     UpdateVertexBuffers();
 
     return true;
 }
 
+bool InitWorldAxes()
+{
+    //create vertax array object for axes rendering
+    glGenVertexArrays(1, &AxesVAO);
+    glBindVertexArray(AxesVAO);
+
+    //create vbo for axes verex positions
+    glGenBuffers(1, &AxesVBO_Positions);
+    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Positions);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisVertices, GL_STATIC_DRAW);
+    //specify vertex packing for locations, and enable the attribute array
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(0);
+
+    //create vbo for axes vertex colors
+    glGenBuffers(1, &AxesVBO_Colors);
+    glBindBuffer(GL_ARRAY_BUFFER, AxesVBO_Colors);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec3), (GLfloat*) AxisColors, GL_STATIC_DRAW);
+    //specify vertex packing for colors, and enable the attribute array
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(1);
+
+    return true;
+}
+
 bool InitLightData()
 {
-    {
-        //create vertax array object for Light rendering
-        glGenVertexArrays(1, &LightVAO);
-        glBindVertexArray(LightVAO);
+    //create vertax array object for Light rendering
+    glGenVertexArrays(1, &LightVAO);
+    glBindVertexArray(LightVAO);
 
-        //create vbo for Light vertex positions
-        glGenBuffers(1, &LightVBO_Positions);
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
-        //specify vertex packing for locations, and enable the attribute array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
+    //create vbo for Light vertex positions
+    glGenBuffers(1, &LightVBO_Positions);
+    glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
+    //specify vertex packing for locations, and enable the attribute array
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(0);
 
-        //create vbo for Light vertex colors
-        glGenBuffers(1, &LightVBO_Colors);
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
-        //specify vertex packing for colors, and enable the attribute array
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
-    }
+    //create vbo for Light vertex colors
+    glGenBuffers(1, &LightVBO_Colors);
+    glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
+    //specify vertex packing for colors, and enable the attribute array
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(1);
 
     UpdateLightData();
 

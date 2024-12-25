@@ -3,6 +3,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// header file includes
+//opengl extension loader and glfw
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 //glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,11 +30,12 @@ void ProcessArguments(int argc, char** argv);
 bool Init(int argc, char** argv);
 
 //sub-initialization functions
-bool InitGraphics();
-bool InitLightData();
+bool InitGLFW();
 bool InitInput();
+bool InitGraphics();
+bool InitWorldAxes();
+bool InitLightData();
 bool InitLSystems();
-
 
 //run the program, which loops updating time, ticking, rendering, and processing input
 void Run();
