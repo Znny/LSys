@@ -225,7 +225,7 @@ bool InitGraphics()
     InitLSystems();
 
     //place camera back and up, looking down at origin
-    glm::vec3 CameraOffset = glm::normalize(-Transform::WorldForward + Transform::WorldUp) * (float)ViewDistance;
+    glm::vec3 CameraOffset = glm::normalize(Transform::WorldForward + Transform::WorldUp) * (float)ViewDistance;
     MainCamera.SetLocation(CameraOffset);
     MainCamera.AdjustPitch(-45.0);
     glm::vec3 CurrentLocation = MainCamera.GetLocation();
@@ -748,7 +748,7 @@ void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset
     //call ImGui callback
     ImGui_ImplGlfw_ScrollCallback(Window, xOffset, yOffset);
 
-    MainCamera.SetLocation(MainCamera.GetLocation() + MainCamera.GetForwardVector() * (float)(ViewDistance * 0.1 * yOffset));
+    MainCamera.SetLocation(MainCamera.GetLocation() - MainCamera.GetForwardVector() * (float)(ViewDistance * 0.1 * yOffset));
 }
 
 void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight)
@@ -815,7 +815,6 @@ bool InitLightData()
         //specify vertex packing for colors, and enable the attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
-
     }
 
     UpdateLightData();
@@ -871,7 +870,6 @@ void UpdateLightData()
 {
     std::vector<glm::vec3> LightVerts = GenerateSphere(LightLocation, LightRadius, VerticalSections, HorizontalSections);
     LightVertCount = LightVerts.size();
-    //LightVertCount = 1500;
 
     LogInfo("LightVertCount = %d", LightVertCount);
     glm::vec3* VertLocations = (glm::vec3*)malloc(LightVertCount * sizeof(glm::vec3));
@@ -881,16 +879,6 @@ void UpdateLightData()
     {
         VertLocations[i] = LightVerts[i];
         VertColors[i] = LightColor;
-        /*
-        VertLocations[i].r = 0.5 - (rand() % 1000) / 1000.0;
-        VertLocations[i].g = 0.5 - (rand() % 1000) / 1000.0;
-        VertLocations[i].b = 0.5 - (rand() % 1000) / 1000.0;
-
-        VertColors[i].r = (rand() % 1000) / 1000.0;
-        VertColors[i].g = (rand() % 1000) / 1000.0;
-        VertColors[i].b = (rand() % 1000) / 1000.0;
-        //*/
-
     }
 
     {

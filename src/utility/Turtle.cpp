@@ -208,16 +208,16 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
 
         ColoredTriangle t1;
         //set vertex locations
-        t1.VertexLocations[0] = circleEnd[CurrentIndex];
+        t1.VertexLocations[0] = circleStart[CurrentIndex];
         t1.VertexLocations[1] = circleStart[NextIndex];
-        t1.VertexLocations[2] = circleStart[CurrentIndex];
+        t1.VertexLocations[2] = circleEnd[CurrentIndex];
         //assign colors
         t1.VertexColors[0] = color1;
         t1.VertexColors[1] = color1;
         t1.VertexColors[2] = color2;
         //calculate normals
-        glm::vec3 v1 = t1.VertexLocations[2] - t1.VertexLocations[0];
-        glm::vec3 v2 = t1.VertexLocations[1] - t1.VertexLocations[0];
+        glm::vec3 v1 = t1.VertexLocations[1] - t1.VertexLocations[0];
+        glm::vec3 v2 = t1.VertexLocations[2] - t1.VertexLocations[0];
         glm::vec3 normal = glm::cross(v1, v2);
         for(int i = 0; i < 3; i++)
         {
@@ -226,14 +226,14 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
 
 
         ColoredTriangle t2;
-        t2.VertexLocations[0] = circleStart[NextIndex];
+        t2.VertexLocations[0] = circleEnd[NextIndex];
         t2.VertexLocations[1] = circleEnd[CurrentIndex];
-        t2.VertexLocations[2] = circleEnd[NextIndex];
+        t2.VertexLocations[2] = circleStart[NextIndex];
         t2.VertexColors[0] = color2;
         t2.VertexColors[1] = color2;
         t2.VertexColors[2] = color1;
-        v1 = t2.VertexLocations[2] - t2.VertexLocations[0];
-        v2 = t2.VertexLocations[1] - t2.VertexLocations[0];
+        v1 = t2.VertexLocations[1] - t2.VertexLocations[0];
+        v2 = t2.VertexLocations[2] - t2.VertexLocations[0];
         normal = glm::cross(v1, v2);
         for(int i = 0; i < 3; i++)
         {
@@ -299,7 +299,7 @@ void Turtle::CompletePolygon(ColoredTriangleList* triangles)
         //subtract constant VertexLocations[0] from both and calculate normal based on it
         v1 -= TopTriangle.VertexLocations[0];
         v2 -= TopTriangle.VertexLocations[0];
-        glm::vec3 TopTriangleNormal = glm::cross(v2, v1);
+        glm::vec3 TopTriangleNormal = glm::cross(v1, v2);
 
         //set normals for both triangles, set location of bottom triangle to slightly below top triangle, and flip winding
         for(int j = 0; j < 3; j++)

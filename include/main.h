@@ -92,6 +92,7 @@ double ViewDistance = 10.0;
 //axes rendering
 const float AxisLength = 5.0f;
 const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
+
 const glm::vec3 AxisVertices[6] =
 {
         SceneOrigin, Transform::WorldRight * AxisLength,
@@ -161,13 +162,13 @@ GLuint LightVAO;
 GLuint LightVBO_Positions;
 GLuint LightVBO_Colors;
 
-glm::vec3 LightLocation = {0.0, 0.0, 0.0};
+glm::vec3 LightLocation = {0.5, 0.5, 0.5};
 glm::vec3 LightColor = glm::vec3(1.0);
-glm::vec3 AmbientColor = glm::vec3(1.0);
+glm::vec3 AmbientColor = glm::vec3(0.25);
 float AmbientStrength = 1.0f;
 constexpr int VerticalSections = 5;
 constexpr int HorizontalSections = 5;
-constexpr float LightRadius = 2.0f;
+constexpr float LightRadius = 0.05f;
 int LightVertCount = 0;
 
 //UI manager
