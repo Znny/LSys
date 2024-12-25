@@ -262,17 +262,18 @@ void UIManager::DrawLightMenu()
 {
     ImGui::Begin("Lighting");
 
-    if(ImGui::InputFloat3("Light Location", (float*)LightingInfo.LightLocation))
-    {
-        LightUpdateCallback();
-    }
-    if(ImGui::InputFloat3("Light Color", (float*)LightingInfo.LightColor))
+    if(ImGui::SliderFloat3("Light Location", (float*)LightingInfo.LightLocation, -10.0, 10.0))
     {
         LightUpdateCallback();
     }
 
-    ImGui::InputFloat3("Ambient Color", (float*)LightingInfo.AmbientColor);
-    ImGui::InputFloat("Ambient Strength", LightingInfo.AmbientStrength);
+    if(ImGui::ColorEdit3("Light Color", (float*)LightingInfo.LightColor))
+    {
+        LightUpdateCallback();
+    }
+
+    ImGui::ColorEdit3("Ambient Color", (float*)LightingInfo.AmbientColor);
+    ImGui::SliderFloat("Ambient Strength", LightingInfo.AmbientStrength, 0.0f, 1.0f);
 
     ImGui::End(); // End the window
 }
