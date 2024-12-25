@@ -10,7 +10,6 @@
 #include <cstdio>
 
 //memory management
-#include <cstdlib>
 #include <cstring>
 #include "utility/logging.hpp"
 #include "rendering/ShaderProgram.h"
@@ -25,6 +24,8 @@ namespace Rendering {
      */
     ShaderObject::ShaderObject(const std::string& filename, GLenum shaderType)
     {
+        Type = shaderType;
+        ObjectID = 0;
         if (!filename.empty())
         {
             Load(filename, shaderType);
@@ -44,10 +45,9 @@ namespace Rendering {
 
         GLint compile_status = GL_FALSE;
         int info_log_length = 0;
-        char info_log[1024];
 
         //set shader object source and compile, and get compilation results
-        glShaderSource(ObjectID, 1, (const GLchar**) (&ShaderSource), NULL);
+        glShaderSource(ObjectID, 1, reinterpret_cast<const GLchar**>(&ShaderSource), nullptr);
         glCompileShader(ObjectID);
         glGetShaderiv(ObjectID, GL_COMPILE_STATUS, &compile_status);
 
@@ -56,8 +56,9 @@ namespace Rendering {
         //log shader log if compilation failed
         if (!bCompiled)
         {
+            char info_log[1024];
             glGetShaderiv(ObjectID, GL_INFO_LOG_LENGTH, &info_log_length);
-            glGetShaderInfoLog(ObjectID, info_log_length, NULL, info_log);
+            glGetShaderInfoLog(ObjectID, info_log_length, nullptr, info_log);
             LogError("error: %s\n", info_log);
             return false;
         }

@@ -20,7 +20,6 @@ include_directories(
         lib/imgui/backends
 )
 
-
 add_executable(
     LSYS
         src/rendering/glad.c
@@ -42,7 +41,7 @@ add_executable(
         src/UI/UIManager.cpp
         src/rendering/ShaderManager.cpp
         include/rendering/RenderableBase.h
-        include/rendering/RenderableBase.cpp
+        src/rendering/RenderableBase.cpp
         src/rendering/RenderingContext.cpp
         src/utility/util.cpp
         include/utility/util.h

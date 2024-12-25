@@ -1,10 +1,9 @@
 //
 // Created by Ryanc on 11/1/2024.
 //
-#ifndef STACK_H
-#define STACK_H
+#pragma once
 
-#include <stdio.h>
+#include <cstdio>
 
 #define STACK_ALLOCATION_FAILURE 0
 
@@ -14,7 +13,7 @@ class Stack
 public:
     Stack()
     {
-        Elements = (ElementType*) malloc(ExpansionSize * NumAllocations * sizeof(ElementType));
+        Elements = static_cast<ElementType*>(malloc(ExpansionSize * NumAllocations * sizeof(ElementType)));
 
         if (Elements == nullptr)
         {
@@ -54,7 +53,7 @@ private:
     void Expand()
     {
         NumAllocations++;
-        ElementType* reallocdat = (ElementType*) realloc(Elements, ExpansionSize * NumAllocations * sizeof(ElementType));
+        auto* reallocdat = static_cast<ElementType*>(realloc(Elements, ExpansionSize * NumAllocations * sizeof(ElementType)));
         if (reallocdat != nullptr)
         {
             Elements = reallocdat;
@@ -74,7 +73,3 @@ private:
     int NumAllocations = 1;
     const int ExpansionSize = 1024;
 };
-
-
-
-#endif //STACK_H

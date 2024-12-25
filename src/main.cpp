@@ -1,7 +1,7 @@
 //
 // Created by Ryan on 5/22/2024.
 //
-#include <string.h>
+#include <cstring>
 #include "utility/logging.hpp"
 
 #include "../lib/imgui/imgui.h"
@@ -22,12 +22,7 @@
 //shader objects
 Rendering::ShaderManager* shaderManager;
 std::shared_ptr<Rendering::ShaderProgram> PassthroughShaderProgram;
-std::shared_ptr<Rendering::ShaderObject> PassthroughVertexShader;
-std::shared_ptr<Rendering::ShaderObject> PassthroughFragmentShader;
-
 std::shared_ptr<Rendering::ShaderProgram> HardCodedLightShaderProgram;
-std::shared_ptr<Rendering::ShaderObject> HardCodedLightVertexShader;
-std::shared_ptr<Rendering::ShaderObject> HardCodedLightFragmentShader;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -152,12 +147,12 @@ bool Init(int argc, char** argv)
 bool InitGraphics()
 {
     //attempt initializing GLFW
-    if (!(bGLFWInitialized = glfwInit()))
+    bGLFWInitialized = glfwInit();
+    if (!bGLFWInitialized)
     {
         LogCritical("GLFW initialization failure.\n");
         return false;
     }
-
 
     //set error callback
     glfwSetErrorCallback(ErrorCallback);
@@ -165,7 +160,6 @@ bool InitGraphics()
     //try to set context version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
 
     const char* Title = "GLBP";
     //attempt to create the window
@@ -180,7 +174,7 @@ bool InitGraphics()
     glfwMakeContextCurrent(MainWindow);
 
     //load gl extensions
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         LogCritical("Couldn't load openGL extensions\n");
         return false;
@@ -205,21 +199,13 @@ bool InitGraphics()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    //cache and initialize shader manager
+    Rendering::ShaderManager::Initialize();
     shaderManager = Rendering::ShaderManager::Get();
-    shaderManager->Initialize();
 
     //create shader objects
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
-    PassthroughFragmentShader = shaderManager->LoadShader("../resource/shader/passthrough.fs", GL_FRAGMENT_SHADER);
-    PassthroughVertexShader = shaderManager->LoadShader("../resource/shader/passthrough.vs", GL_VERTEX_SHADER);
-
     HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", "../resource/shader/HCLight_passthrough.vs", "../resource/shader/HCLight_passthrough.fs");
-    HardCodedLightFragmentShader = shaderManager->LoadShader("../resource/shader/HCLight_passthrough.fs", GL_FRAGMENT_SHADER);
-    HardCodedLightVertexShader = shaderManager->LoadShader("../resource/shader/HCLight_passthrough.vs", GL_VERTEX_SHADER);
-
-    //compile vert and frag shaders
-    PassthroughVertexShader->Compile();
-    PassthroughFragmentShader->Compile();
 
     //initialize L systems
     InitLSystems();
@@ -267,8 +253,8 @@ bool InitGraphics()
     glClearColor(Red, Green, Blue, 1.0);
 
     // Initialize ImGui
-    UI.Init(MainWindow);
-    UI.UpdateScale(1.0);
+    UIManager::Init(MainWindow);
+    UIManager::UpdateScale(1.0);
 
     UI.SetUpdateCallback(UpdateVertexBuffers);
 
@@ -355,7 +341,7 @@ void UpdateVertexBuffers()
     {
         for(int v = 0; v < 3; v++)
         {
-            VertLocations[TriangleIndex*3 + v].y -= ModelCenter.y/2.0;
+            VertLocations[TriangleIndex*3 + v].y -= ModelCenter.y/2.0f;
         }
     }
 
@@ -370,22 +356,22 @@ void UpdateVertexBuffers()
 
         //create vertex buffer for storing per-vertex data
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Positions);
-        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations),
-                     (GLfloat*) VertLocations, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexLocations)),
+                     reinterpret_cast<GLfloat*>(VertLocations), GL_STATIC_DRAW);
         //specify location layout, and enable vertex attribute array
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Colors);
-        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors),
-                     (GLfloat*) VertColors, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexColors)),
+                     reinterpret_cast<GLfloat*>(VertColors), GL_STATIC_DRAW);
         //specify color layout, and enable vertex attribute array
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, ColoredVertexBufferObject_Normals);
-        glBufferData(GL_ARRAY_BUFFER, TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexNormals),
-                     (GLfloat*) VertNormals, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(TriangleList->NumTriangles * sizeof(ColoredTriangle::VertexNormals)),
+                     reinterpret_cast<GLfloat*>(VertNormals), GL_STATIC_DRAW);
         //specify color layout, and enable vertex attribute array
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(2);
@@ -443,42 +429,42 @@ void Tick(double DeltaTime)
     //update mouse info if LMB or MMB are held
     if(bLMBHeld || bMMBHeld)
     {
-        double xPos, yPos, xDif, yDif;
+        double xPos, yPos;
         glfwGetCursorPos(MainWindow, &xPos, &yPos);
-        xDif = PreviousMouseXPosition - xPos;
-        yDif = PreviousMouseYPosition - yPos;
+        const double xDif = PreviousMouseXPosition - xPos;
+        const double yDif = PreviousMouseYPosition - yPos;
         PreviousMouseXPosition = xPos;
         PreviousMouseYPosition = yPos;
 
         if(bLMBHeld)
         {
-            MainCamera.RotateWorld(MainCamera.GetRightVector(), yDif);
-            MainCamera.RotateWorld(MainCamera.GetUpVector(), xDif);
+            MainCamera.RotateWorld(MainCamera.GetRightVector(), static_cast<float>(yDif));
+            MainCamera.RotateWorld(MainCamera.GetUpVector(), static_cast<float>(xDif));
         }
         if(bMMBHeld)
         {
             glm::vec3 CameraLocation = MainCamera.GetLocation();
-            CameraLocation += MainCamera.GetUpVector() * (float)yDif * -0.01f;
-            CameraLocation += MainCamera.GetRightVector() * (float)xDif * 0.01f;
+            CameraLocation += MainCamera.GetUpVector() * static_cast<float>(yDif) * -0.01f;
+            CameraLocation += MainCamera.GetRightVector() * static_cast<float>(xDif) * 0.01f;
             MainCamera.SetLocation(CameraLocation);
         }
     }
 
     if(ManualYawInput != 0)
     {
-        MainCamera.RotateWorld(MainCamera.GetUpVector(), ManualYawInput * ManualRotationSpeed * DeltaTime);
+        MainCamera.RotateWorld(MainCamera.GetUpVector(), static_cast<float>(ManualYawInput * ManualRotationSpeed * DeltaTime));
     }
     if(ManualPitchInput != 0)
     {
-        MainCamera.RotateWorld(MainCamera.GetRightVector(), ManualPitchInput * ManualRotationSpeed * DeltaTime);
+        MainCamera.RotateWorld(MainCamera.GetRightVector(), static_cast<float>(ManualPitchInput * ManualRotationSpeed * DeltaTime));
     }
     if(ManualRollInput != 0)
     {
-        MainCamera.AdjustRoll(-ManualRollInput * ManualRotationSpeed * DeltaTime);
+        MainCamera.AdjustRoll(static_cast<float>(-ManualRollInput * ManualRotationSpeed * DeltaTime));
     }
 }
 
-void Render(double dt)
+void Render(double DeltaTime)
 {
     //clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -493,7 +479,7 @@ void Render(double dt)
         glUniformMatrix4fv(glGetUniformLocation(PassthroughShaderProgram->GetProgramID(), "ViewProjectionMatrix"),
                            1,
                            GL_FALSE,
-                           (GLfloat*) &ActiveViewProjectionMatrix);
+                           reinterpret_cast<GLfloat*>(&ActiveViewProjectionMatrix));
 
         //bind and draw AxesVAO
         glBindVertexArray(AxesVAO);
@@ -507,22 +493,22 @@ void Render(double dt)
         glBindVertexArray(ColoredVertexArrayObject);
         glUseProgram(HardCodedLightShaderProgram->GetProgramID());
         glUniformMatrix4fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
-                           (GLfloat*) &ActiveViewProjectionMatrix);
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightPosition"), 1, (GLfloat*) &LightLocation);
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightColor"), 1, (GLfloat*) &LightColor);
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientColor"), 1, (GLfloat*) &AmbientColor);
+                           reinterpret_cast<GLfloat*>(&ActiveViewProjectionMatrix));
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightPosition"), 1, reinterpret_cast<GLfloat*>(&LightLocation));
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightColor"), 1, reinterpret_cast<GLfloat*>(&LightColor));
+        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientColor"), 1, reinterpret_cast<GLfloat*>(&AmbientColor));
         glUniform1f(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientStrength"), AmbientStrength);
 
         //bind and draw ColoredVertexArrayObject
-        glDrawArrays(GL_TRIANGLES, 0, TriangleList->NumTriangles * 3);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(TriangleList->NumTriangles * 3));
     }
 
     // Render ImGui elements
-    UI.BeginFrame();
+    UIManager::BeginFrame();
     UI.DrawSystemMenu(&ActiveSystem);
-    UI.DrawMainMenuBar();
+    UIManager::DrawMainMenuBar();
     UI.DrawLightMenu();
-    UI.EndFrame();
+    UIManager::EndFrame();
 
 
     //swap front and back buffers
@@ -548,7 +534,7 @@ void Cleanup()
     LogInfo("cleaning up...\n");
 
     //cleanup imgui
-    UI.Shutdown();
+    UIManager::Shutdown();
 
     //destroy window if one exists
     if (MainWindow != nullptr)
@@ -869,11 +855,11 @@ std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned i
 void UpdateLightData()
 {
     std::vector<glm::vec3> LightVerts = GenerateSphere(LightLocation, LightRadius, VerticalSections, HorizontalSections);
-    LightVertCount = LightVerts.size();
+    LightVertCount = static_cast<int>(LightVerts.size());
 
     LogInfo("LightVertCount = %d", LightVertCount);
-    glm::vec3* VertLocations = (glm::vec3*)malloc(LightVertCount * sizeof(glm::vec3));
-    glm::vec3* VertColors = (glm::vec3*)malloc(LightVertCount * sizeof(glm::vec3));
+    auto* VertLocations = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
+    auto* VertColors = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
 
     for(int i = 0; i < LightVertCount; i++)
     {
@@ -885,14 +871,14 @@ void UpdateLightData()
         glBindVertexArray(LightVAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
-        glBufferData(GL_ARRAY_BUFFER, LightVertCount * sizeof(glm::vec3),
-                     (GLfloat*) VertLocations, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
+                     reinterpret_cast<GLfloat*>(VertLocations), GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
-        glBufferData(GL_ARRAY_BUFFER, LightVertCount * sizeof(glm::vec3),
-                     (GLfloat*) VertColors, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
+                     reinterpret_cast<GLfloat*>(VertColors), GL_STATIC_DRAW);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
     }

@@ -9,12 +9,12 @@
 
 glm::vec3 HSVtoRGB(const glm::vec3& hsv) {
     glm::vec3 rgb;
-    float h = fmod(hsv.r, 360.0f); // Ensure hue is within [0, 360)
+    auto h = static_cast<float>(fmod(hsv.r, 360.0f)); // Ensure hue is within [0, 360)
     if (h < 0.0f) h += 360.0f;    // Correct negative hue values
     h /= 60.0f;                   // Sector (0 to 5)
 
     int i = static_cast<int>(h) % 6; // Clamp sector to [0, 5]
-    float f = h - i;                // Fractional part of h
+    float f = h - static_cast<float>(i);                // Fractional part of h
     float p = hsv.b * (1 - hsv.g);
     float q = hsv.b * (1 - hsv.g * f);
     float t = hsv.b * (1 - hsv.g * (1 - f));
@@ -67,7 +67,7 @@ glm::vec3 RGBtoHSV(const glm::vec3& rgb) {
     if (delta == 0.0f) {
         hsv.r = 0.0f; // Hue is undefined when there's no color variation
     } else if (max == rgb.r) {
-        hsv.r = 60.0f * fmod((rgb.g - rgb.b) / delta, 6.0f);
+        hsv.r = static_cast<float>(60.0 * fmod((rgb.g - rgb.b) / delta, 6.0));
     } else if (max == rgb.g) {
         hsv.r = 60.0f * ((rgb.b - rgb.r) / delta + 2.0f);
     } else { // max == rgb.b

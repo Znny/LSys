@@ -4,7 +4,6 @@
 
 #include "glad/glad.h"
 #include "utility/logging.hpp"
-#include <cstring>
 #include "rendering/ShaderObject.h"
 #include "rendering/ShaderProgram.h"
 
@@ -12,7 +11,7 @@ namespace Rendering {
     /** ShaderProgram::ShaderProgram
      * @param FilenameToLoad
      */
-    ShaderProgram::ShaderProgram(std::string FilenameToLoad)
+    ShaderProgram::ShaderProgram(const std::string& FilenameToLoad)
     {
         if (FilenameToLoad.empty())
         {
@@ -24,22 +23,13 @@ namespace Rendering {
         }
 
         ProgramID = glCreateProgram();
-        //LogDebug("ShaderProgram allocated, ProgramID=%u\n", ProgramID);
-    }
-
-    ShaderProgram& ShaderProgram::operator=(ShaderProgram &sp)
-    {
-        ProgramName = sp.ProgramName;
-        AttachedShaderObjects = sp.AttachedShaderObjects;
-        ProgramID = sp.ProgramID;
-        return *this;
     }
 
     /** ShaderProgram::AttachShaderObject
      *  Attaches the given shader object to this shader program
      * @param Object
      */
-    void ShaderProgram::AttachShaderObject(std::shared_ptr<ShaderObject> Object)
+    void ShaderProgram::AttachShaderObject(const std::shared_ptr<ShaderObject> &Object)
     {
         if(Object == nullptr)
         {
@@ -64,7 +54,7 @@ namespace Rendering {
             LogError("could not link shader, not enough shader objects attached\n");
             return false;
         }
-        for(auto Shader : AttachedShaderObjects)
+        for(const auto& Shader : AttachedShaderObjects)
         {
             if(!Shader->bCompiled) {
                 Shader->Compile();
@@ -117,9 +107,9 @@ namespace Rendering {
     {
         bool bReloadSucceeded = true;
         //attempt to reload each attached shader object
-        for (int i = 0; i < AttachedShaderObjects.size(); i++)
+        for(auto& Shader : AttachedShaderObjects)
         {
-            bReloadSucceeded = bReloadSucceeded && AttachedShaderObjects[i]->Reload();
+            bReloadSucceeded = bReloadSucceeded && Shader->Reload();
         }
 
         //attempt to link if reload succeeded

@@ -16,20 +16,20 @@ void Transform::Reset()
     Scale = (glm::vec3(1.0f));
 }
 
-void Transform::RotateLocal(const glm::vec3 &AxisOfRotation, float Degrees)
+void Transform::RotateLocal(const glm::vec3 &AxisOfRotation, const float Degrees)
 {
-    glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
+    const glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
     Rotation = glm::normalize(rotationQuat * Rotation);
 }
 
-void Transform::RotateWorld(const glm::vec3 &AxisOfRotation, float Degrees)
+void Transform::RotateWorld(const glm::vec3 &AxisOfRotation, const float Degrees)
 {
-    glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
+    const glm::quat rotationQuat = glm::angleAxis(glm::radians(Degrees), glm::normalize(AxisOfRotation));
     Translation = rotationQuat * Translation;// rotationQuat;
     Rotation = glm::normalize(rotationQuat * Rotation);
 }
 
-void Transform::RotateAroundPoint(const glm::vec3 &PointOfRotation, const glm::vec3 &AxisOfRotation, float Degrees)
+void Transform::RotateAroundPoint(const glm::vec3 &PointOfRotation, const glm::vec3 &AxisOfRotation, const float Degrees)
 {
     Translation -= PointOfRotation;
 
@@ -38,19 +38,19 @@ void Transform::RotateAroundPoint(const glm::vec3 &PointOfRotation, const glm::v
     Translation += PointOfRotation;
 }
 
-void Transform::AdjustYaw(float Angle)
+void Transform::AdjustYaw(const float Angle)
 {
     //do the rotation
     RotateLocal(GetUpVector(), Angle);
 }
 
-void Transform::AdjustPitch(float Angle)
+void Transform::AdjustPitch(const float Angle)
 {
     //do the rotation
     RotateLocal(GetRightVector(), Angle);
 }
 
-void Transform::AdjustRoll(float Angle)
+void Transform::AdjustRoll(const float Angle)
 {
     //do the rotation
     RotateLocal(GetForwardVector(), Angle);

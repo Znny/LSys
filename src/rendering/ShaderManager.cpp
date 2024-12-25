@@ -18,12 +18,6 @@ namespace Rendering {
         return sShaderManager;
     }
 
-    // Constructor
-    ShaderManager::ShaderManager()
-    {
-        // Initialize maps or other data structures if necessary
-    }
-
     // Destructor
     ShaderManager::~ShaderManager()
     {

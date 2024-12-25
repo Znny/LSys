@@ -3,7 +3,6 @@
 //
 #pragma once
 
-
 #define MaxReplacementLength 48
 struct LS_RewritingRule
 {
@@ -55,19 +54,19 @@ public:
 
     /** SetIterations
      * Sets the number of iterations to be run when Rewrite is called
-     * @param iter - the new number of iterations
+     * @param NewIterations - the new number of iterations
      */
     void SetIterations(int NewIterations);
 
     /** SetAngle
      * Sets the Angle to rotate
-     * @param iter - the new number of iterations
+     * @param NewAngle - the new Angle of the system
      */
     void SetAngle(float NewAngle);
 
     /** SetDistance
      * Sets the distance to move
-     * @param iter - the new number of iterations
+     * @param NewDistance - the new distance to use for the system
      */
     void SetDistance(float NewDistance);
 

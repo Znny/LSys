@@ -12,25 +12,30 @@ class GLFWwindow;
 class UIManager
 {
 public:
-    void Init(GLFWwindow* window);
+    static void Init(GLFWwindow* window);
     void SetLightingVariables(glm::vec3* LightLocation,
                               glm::vec3* LightColor,
                               glm::vec3* AmbientColor,
                               float* AmbientStrength);
-    void BeginFrame();
-    void EndFrame();
-    void Shutdown();
 
-    void (*UpdateCallback)();
-    void (*LightUpdateCallback)();
+    static void BeginFrame();
+
+    static void EndFrame();
+
+    static void Shutdown();
+
+    void (*UpdateCallback)() = nullptr;
+    void (*LightUpdateCallback)() = nullptr;
 
     void SetUpdateCallback(void (*UpdateCallbackSignature)());
     void SetLightUpdateCallback(void (*LightUpdateCallbackSignature)());
 
-    void DrawSystemMenu(LSystem* ActiveSystem);
-    void DrawLightMenu();
-    void DrawMainMenuBar();
-    void UpdateScale(float NewScale);
+    void DrawSystemMenu(LSystem* ActiveSystem) const;
+    void DrawLightMenu() const;
+
+    static void DrawMainMenuBar();
+
+    static void UpdateScale(float NewScale);
 
 private:
     struct SLightingInfo

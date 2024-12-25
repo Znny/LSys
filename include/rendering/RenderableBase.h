@@ -19,12 +19,12 @@ namespace Rendering
     class RenderableBase
     {
     public:
-        RenderableBase(std::string& GivenName);
+        explicit RenderableBase(const std::string& GivenName);
 
-        void SetName(std::string& NewName);
+        void SetName(const std::string& NewName);
         Transform& GetTransform() { return transform; }
 
-        void SetProgram(std::shared_ptr<ShaderProgram>& NewProgram);
+        void SetProgram(const std::shared_ptr<ShaderProgram>& NewProgram);
 
         void Init();
 
@@ -38,21 +38,3 @@ namespace Rendering
         GLuint EBO; //Element buffer object
     };
 }
-
-
-
-///
-/// todo:
-/// make new system
-/// specify system details
-/// save/load
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///

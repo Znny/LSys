@@ -34,8 +34,10 @@ namespace Rendering
         RenderingContext()=default;
 
         void Initialize();
-        void SetActiveCamera(Camera* Camera);
-        void Update();
+
+        static void SetActiveCamera(Camera* Camera);
+
+        static void Update();
     private:
         Camera* ActiveCamera = nullptr;
         std::shared_ptr<ShaderProgram> ActiveShaderProgram;

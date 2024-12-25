@@ -3,7 +3,6 @@
 //
 
 #include "utility/Turtle.h"
-#include <stdio.h>
 #include <cstring>
 #include <utility/logging.hpp>
 #include <utility/logging.inl>
@@ -35,31 +34,23 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
 
     //set current width and how much to decrement when extending via 'F'
     CurrentWidth = System.Distance / 3.141592f;
-    float WidthDecrement = CurrentWidth / (3.141592f * 3.141592f * 3.141592f);
+    const float WidthDecrement = CurrentWidth / (3.141592f * 3.141592f * 3.141592f);
 
     //set source string based on whether we're working off a generated string or the axiom
-    char* SourceString = System.GeneratedString != nullptr
-                         ? System.GeneratedString
-                         : System.Axiom;
+    const char* SourceString = System.GeneratedString != nullptr
+                                   ? System.GeneratedString
+                                   : System.Axiom;
 
     //exit early if the source string is nullptr for some reason
     if (SourceString == nullptr)
     {
         return nullptr;
     }
-    size_t StrLength = strlen(SourceString);
+    const size_t StrLength = strlen(SourceString);
 
     //specify max number of tris (10mil) and create list to store them all
     constexpr unsigned int MaxTriangles = 10000000;
-    ColoredTriangleList* Triangles = new ColoredTriangleList(MaxTriangles);
-
-
-    /*
-    CurrentColor.r = (rand() % 1000) / 1000.0f;
-    CurrentColor.g = (rand() % 1000) / 1000.0f;
-    CurrentColor.g = 0.1;
-    CurrentColor.b = (rand() % 1000) / 1000.0f;
-     */
+    auto* Triangles = new ColoredTriangleList(MaxTriangles);
 
     LogVerbose("Turtle Processing string of length %d\n", StrLength);
 
@@ -71,7 +62,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             case 'F':
             {
                 CurrentHSVColor = RGBtoHSV(CurrentColor);
-                CurrentHSVColor.r = fmod(CurrentHSVColor.r + 8.f, 360.0f);
+                CurrentHSVColor.r = static_cast<float>(fmod(CurrentHSVColor.r + 8.0, 360.0));
 
                 glm::vec3 NextColor = HSVtoRGB(CurrentHSVColor);
 
@@ -142,10 +133,12 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             break;
 
             case 'G':
+                LogInfo("Turtle Interpreted G\n");
                 //implement Move forward and draw a line. do not record a vertex, pg 122
             break;
 
             case '.':
+                LogInfo("Turtle Interpreted .\n");
                 //todo: implement record a vertex in the current polygon (pg 122, 127)
             break;
 
@@ -156,19 +149,25 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             break;
 
             case '~':
+                LogInfo("Turtle Interpreted ~\n");
                 //todo: implement incorporation of predefined surface
             break;
 
             case '!':
+                LogInfo("Turtle Interpreted !\n");
                 //todo: implement decrement diamater of segments
             break;
 
             case '`':
+                LogInfo("Turtle Interpreted `\n");
                 //todo: implement increment current color index
             break;
 
             case '%':
+                LogInfo("Turtle Interpreted %\n");
                 //todo: implement cut off remainder of branch
+            break;
+            default:
             break;
         }
     }
@@ -176,8 +175,7 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     return Triangles;
 }
 
-void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles)
-{
+void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles) const {
     // Define vertices for the cone segment
     const glm::vec3 start = CurrentTransform.GetLocation();
     const glm::vec3 end = start + CurrentTransform.GetForwardVector() * length;
@@ -189,16 +187,20 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
     // Generate circular cross sections
     for (int i = 0; i < numSides; ++i)
     {
-        float angle = (2.0f * M_PI * i) / numSides;
-        float angle2= angle + (2.0f * M_PI * 0.5) / numSides;
-        float x = cos(angle);
-        float z = sin(angle);
-        float x2 = cos(angle2);
-        float z2 = sin(angle2);
-        circleStart[i] = start + CurrentTransform.GetRightVector() * (r1 * x)
-                               +CurrentTransform.GetUpVector() * (r1 * z);
-        circleEnd[i] = end + CurrentTransform.GetRightVector() * (r2 * x2)
-                           + CurrentTransform.GetUpVector() * (r2 * z2);
+        double angle = (2.0f * M_PI * i) / numSides;
+        double angle2= angle + (2.0f * M_PI * 0.5) / numSides;
+        double x = cos(angle);
+        double z = sin(angle);
+        double x2 = cos(angle2);
+        double z2 = sin(angle2);
+        auto r1x = static_cast<float>(r1 * x);
+        auto r1z = static_cast<float>(r1 * z);
+        auto r2x2 = static_cast<float>(r2 * x2);
+        auto r2z2 = static_cast<float>(r2 * z2);
+        circleStart[i] = start + CurrentTransform.GetRightVector() * r1x
+                               +CurrentTransform.GetUpVector() * r1z;
+        circleEnd[i] = end + CurrentTransform.GetRightVector() * r2x2
+                           + CurrentTransform.GetUpVector() * r2z2;
     }
 
     // Generate triangles for the cone
@@ -218,12 +220,11 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
         //calculate normals
         glm::vec3 v1 = t1.VertexLocations[1] - t1.VertexLocations[0];
         glm::vec3 v2 = t1.VertexLocations[2] - t1.VertexLocations[0];
-        glm::vec3 normal = glm::cross(v1, v2);
-        for(int i = 0; i < 3; i++)
-        {
-            t1.VertexNormals[i] = normal;
-        }
 
+        glm::vec3 normal = glm::cross(v1, v2);
+        for(auto& Normal : t1.VertexNormals) {
+            Normal = normal;
+        }
 
         ColoredTriangle t2;
         t2.VertexLocations[0] = circleEnd[NextIndex];
@@ -235,9 +236,8 @@ void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& c
         v1 = t2.VertexLocations[1] - t2.VertexLocations[0];
         v2 = t2.VertexLocations[2] - t2.VertexLocations[0];
         normal = glm::cross(v1, v2);
-        for(int i = 0; i < 3; i++)
-        {
-            t2.VertexNormals[i] = normal;
+        for(auto& Normal : t2.VertexNormals) {
+            Normal = normal;
         }
 
         triangles->AddTriangle(t1);
@@ -342,10 +342,8 @@ void Turtle::RotateToVertical()
     glm::vec3 NewLeftDir = glm::cross(Transform::WorldUp, CurrentTransform.GetForwardVector());
     NewLeftDir = NewLeftDir / glm::length(NewLeftDir);
 
-    glm::vec3 NewUpDir = glm::cross(CurrentTransform.GetForwardVector(), NewLeftDir);
-    glm::normalize(NewUpDir);
-
-    glm::mat3 RotationMatrix(CurrentTransform.GetForwardVector(), NewUpDir, NewLeftDir);
+    const glm::vec3 NewUpDir = glm::normalize(glm::cross(CurrentTransform.GetForwardVector(), NewLeftDir));
+    const glm::mat3 RotationMatrix(CurrentTransform.GetForwardVector(), NewUpDir, NewLeftDir);
     CurrentTransform.SetRotation(RotationMatrix);
 }
 

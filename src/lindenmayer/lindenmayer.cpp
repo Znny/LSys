@@ -4,11 +4,11 @@
 
 #include "lindenmayer/lindenmayer.h"
 #include <cstring>
-#include "stdio.h"
+#include <cstdio>
 #include "utility/logging.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-LS_RewritingRule::LS_RewritingRule(char c, const char *R)
+LS_RewritingRule::LS_RewritingRule(const char c, const char *R)
 {
     Character = c;
     strncat(RString, R, strnlen(R, MaxReplacementLength));
@@ -46,14 +46,14 @@ void LSystem::SetIterations(int NewIterations)
 
 /** LSystem::AddRule
  *
- * @param c
- * @param R
+ * @param character
+ * @param RewrittenString
  */
-void LSystem::AddRule(char c, const char* R)
+void LSystem::AddRule(const char character, const char* RewrittenString)
 {
-    LS_RewritingRule& Rule = RewritingRules[(int) c];
-    Rule.Character = c;
-    strncat(Rule.RString, R, strnlen(R, MaxReplacementLength));
+    LS_RewritingRule& Rule = RewritingRules[static_cast<unsigned char>(character)];
+    Rule.Character = character;
+    strncat(Rule.RString, RewrittenString, strnlen(RewrittenString, MaxReplacementLength));
 }
 
 /** LSystem::Rewrite
@@ -98,7 +98,7 @@ void LSystem::Rewrite()
                 continue;
             }
 
-            LS_RewritingRule& Rule = RewritingRules[(int) Character];
+            const LS_RewritingRule& Rule = RewritingRules[static_cast<unsigned char>(Character)];
 
             const bool bUsingExplicitRule = Rule.Character == Character && Rule.RString != nullptr;
 
@@ -180,7 +180,7 @@ void LSystem::LoadFromFile(const char* Filename)
     FILE* fp = fopen(Filename, "r");
 
     //Checks if file is empty
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -191,9 +191,9 @@ void LSystem::LoadFromFile(const char* Filename)
         const char* AngleString = "angle:";
         const char* IterationsString = "iterations:";
 
-        char* axiomStart = strstr(line, AxiomString);
-        char* angleStart = strstr(line, AngleString);
-        char* iterationsStart = strstr(line, IterationsString);
+        const char* axiomStart = strstr(line, AxiomString);
+        const char* angleStart = strstr(line, AngleString);
+        const char* iterationsStart = strstr(line, IterationsString);
 
         if (axiomStart != nullptr)
         {
@@ -201,11 +201,11 @@ void LSystem::LoadFromFile(const char* Filename)
         }
         else if (angleStart != nullptr)
         {
-            Angle = atof(line + strlen(AngleString));
+            Angle = static_cast<float>(strtod(angleStart + strlen(AngleString), nullptr));
         }
         else if (iterationsStart != nullptr)
         {
-            Iterations = atoi(line + strlen(IterationsString));
+            Iterations = strtol(iterationsStart + strlen(IterationsString), nullptr, 10);
         }
         else if (line[0] > 32 && line[1] == ':')
         {
@@ -222,7 +222,7 @@ void LSystem::AddRuleFromString(const char* String)
     {
         return;
     }
-    const int ColonOffset = strstr(String, ":") - String;
+    const int ColonOffset = static_cast<int>(strstr(String, ":") - String);
     if(ColonOffset < 0)
     {
         return;
@@ -244,7 +244,7 @@ void LSystem::SaveToFile(const char* Filename)
     FILE* fp = fopen(Filename, "w");
 
     //ensure the file was opened
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }

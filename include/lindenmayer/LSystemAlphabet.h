@@ -2,11 +2,9 @@
 // Created by Ryan on 6/9/2024.
 //
 
-#ifndef LSYS_LSYSTEMALPHABET_H
-#define LSYS_LSYSTEMALPHABET_H
+#pragma once
 
 #include <map>
-
 
 typedef void* RuleReturnType;
 
@@ -61,5 +59,3 @@ private:
     Map<char, Rule> CharacterRuleMapping;
 };
 
-
-#endif //LSYS_LSYSTEMALPHABET_H

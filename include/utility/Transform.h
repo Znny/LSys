@@ -1,5 +1,4 @@
-#ifndef _TRANSFORM_INCLUDED
-#define _TRANSFORM_INCLUDED
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,6 +18,7 @@ public:
     static const glm::vec3 WorldForward;
     static const glm::vec3 WorldRight;
     static const glm::vec3 WorldUp;
+
     void Reset();
 
     // Getters
@@ -81,4 +81,3 @@ protected:
     glm::mat4 Matrix = glm::mat4();
 };
 
-#endif//ifndef _TRANSFORM_INCLUDED

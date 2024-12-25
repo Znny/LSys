@@ -49,9 +49,8 @@ void UIManager::SetLightUpdateCallback(void (* LightUpdateCallbackSignature)())
     LightUpdateCallback = LightUpdateCallbackSignature;
 }
 
-void SliderWithTextInput(const char* label, float* value, float min, float max)
+void SliderWithTextInput(const char* label, float* value, const float min, const float max)
 {
-    static bool textInputActive = false; // Flag to track if text input is active
     static float textValue = 0.0f;       // Temporary value for text input
 
     ImGui::PushID(label); // Ensure unique ID for this widget
@@ -62,7 +61,6 @@ void SliderWithTextInput(const char* label, float* value, float min, float max)
 
     // 2. Handle double-click to activate text input
     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-        textInputActive = true;   // Enable text input
         textValue = *value;       // Initialize with current slider value
         ImGui::OpenPopup("TextInputPopup");
     }
@@ -78,7 +76,6 @@ void SliderWithTextInput(const char* label, float* value, float min, float max)
 
         // Close the popup if the user clicks outside or presses Escape
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) || ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyPressed(ImGuiKey_Enter)) {
-            textInputActive = false;
             ImGui::CloseCurrentPopup();
         }
 
@@ -88,7 +85,7 @@ void SliderWithTextInput(const char* label, float* value, float min, float max)
     ImGui::PopID(); // Restore ID stack
 }
 
-void UIManager::DrawSystemMenu(LSystem* ActiveSystem)
+void UIManager::DrawSystemMenu(LSystem* ActiveSystem) const
 {
     ImGui::Begin("L-System Configuration"); // Start a new window
 
@@ -141,7 +138,7 @@ void UIManager::DrawSystemMenu(LSystem* ActiveSystem)
     ImGui::InputText("Replacement", NewRuleReplacementBuf, MaxReplacementLength);
     if(ImGui::Button("Add Rule"))
     {
-        if(ActiveSystem->RewritingRules[(int)NewRuleCharacterBuf].Character != NewRuleCharacterBuf)
+        if(ActiveSystem->RewritingRules[static_cast<unsigned char>(NewRuleCharacterBuf)].Character != NewRuleCharacterBuf)
         {
             ActiveSystem->AddRule(NewRuleCharacterBuf, NewRuleReplacementBuf);
         }
@@ -218,7 +215,7 @@ void UIManager::DrawMainMenuBar()
         openSaveMenu = false;
     }
     // 1. Immediately handle popup after opening
-    if (ImGui::BeginPopupModal("Save System", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal("Save System", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         static char saveInput[256] = ""; // Buffer for save input text
 
@@ -258,21 +255,21 @@ void UIManager::SetLightingVariables(
     LightingInfo.AmbientStrength = AmbientStrength;
 }
 
-void UIManager::DrawLightMenu()
+void UIManager::DrawLightMenu() const
 {
     ImGui::Begin("Lighting");
 
-    if(ImGui::SliderFloat3("Light Location", (float*)LightingInfo.LightLocation, -10.0, 10.0))
+    if(ImGui::SliderFloat3("Light Location", reinterpret_cast<float*>(LightingInfo.LightLocation), -10.0, 10.0))
     {
         LightUpdateCallback();
     }
 
-    if(ImGui::ColorEdit3("Light Color", (float*)LightingInfo.LightColor))
+    if(ImGui::ColorEdit3("Light Color", reinterpret_cast<float*>(LightingInfo.LightColor)))
     {
         LightUpdateCallback();
     }
 
-    ImGui::ColorEdit3("Ambient Color", (float*)LightingInfo.AmbientColor);
+    ImGui::ColorEdit3("Ambient Color", reinterpret_cast<float*>(LightingInfo.AmbientColor));
     ImGui::SliderFloat("Ambient Strength", LightingInfo.AmbientStrength, 0.0f, 1.0f);
 
     ImGui::End(); // End the window

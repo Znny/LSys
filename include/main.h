@@ -4,9 +4,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// header file includes
 
-//stl
-#include <memory>
-
 ///glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -44,8 +41,8 @@ void Run();
 void UpdateTiming(GLFWwindow* window);
 void UpdateVertexBuffers();
 void UpdateLightData();
-void Tick(double dt);
-void Render(double dt);
+void Tick(double DeltaTime);
+void Render(double DeltaTime);
 
 //poll input events for callback processing
 void ProcessInput();
@@ -90,8 +87,8 @@ glm::mat4 ActiveViewProjectionMatrix = glm::mat4();
 double ViewDistance = 10.0;
 
 //axes rendering
-const float AxisLength = 5.0f;
-const glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
+constexpr float AxisLength = 5.0f;
+constexpr glm::vec3 SceneOrigin(0.0, 0.0, 0.0);
 
 const glm::vec3 AxisVertices[6] =
 {

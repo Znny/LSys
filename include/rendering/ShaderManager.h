@@ -18,13 +18,13 @@ namespace Rendering
     public:
         static ShaderManager* Get();
 
-        void Initialize();
+        static void Initialize();
 
         std::shared_ptr<ShaderProgram> LoadShaderProgram(const std::string& ProgramName, const std::string& VertexShaderName, const std::string& FragmentShaderName);
         std::shared_ptr<ShaderObject> LoadShader(const std::string& ShaderName, GLenum ShaderType);
 
     private:
-        ShaderManager();
+        ShaderManager() = default;
         ~ShaderManager();
 
         std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> ShaderPrograms;

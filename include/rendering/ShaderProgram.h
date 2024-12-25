@@ -15,15 +15,15 @@ namespace Rendering {
  public:
 
   //explicit needed to avoid unnecessary implicit conversions
-  explicit ShaderProgram(std::string FileName);
-  ShaderProgram& operator= (ShaderProgram& sp);
+  explicit ShaderProgram(const std::string& FileName);
+  ShaderProgram& operator= (ShaderProgram const& sp) = default;
 
   GLuint GetProgramID() const;
 
   /** AttachShaderObject
    * @param Object - the shader object to attach to the shader program
    */
-  void AttachShaderObject(std::shared_ptr<ShaderObject> Object);
+  void AttachShaderObject(const std::shared_ptr<ShaderObject> &Object);
 
   /** CompileAttachedShaders - attempts to compile all attached shader objects
    * @return true if all shader objects compiled successfully

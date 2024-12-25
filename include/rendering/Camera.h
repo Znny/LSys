@@ -1,9 +1,7 @@
 //
 // Created by Ryanc on 10/28/2024.
 //
-
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "utility/Transform.h"
 
@@ -25,11 +23,11 @@ public:
                     double VerticalFOV = 45.0 );
 
     void SetProjectionMode(const ECameraProjectionMode& Mode);
-    void SetClipDimensions(const double Width,const double Height, const double Near, const double Far);
-    void SetClipWidth(const double Width);
-    void SetClipHeight(const double Height);
-    void SetClipNear(const double Near);
-    void SetClipFar(const double Far);
+    void SetClipDimensions(double Width, double Height, double Near, double Far);
+    void SetClipWidth(double Width);
+    void SetClipHeight(double Height);
+    void SetClipNear(double Near);
+    void SetClipFar(double Far);
 
     const glm::mat4& GetProjectionMatrix() const;
     glm::mat4 GetViewProjectionMatrix();
@@ -47,6 +45,3 @@ private:
     glm::mat4 ProjectionMatrix = glm::mat4();
 
 };
-
-
-#endif //CAMERA_H

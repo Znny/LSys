@@ -2,9 +2,9 @@
 // Created by Ryan Cosgrove on 10/20/2024.
 //
 
-#ifndef COLOREDTRIANGLE_H
-#define COLOREDTRIANGLE_H
+#pragma once
 
+#include <random>
 #include <glm/glm.hpp>
 
 /* ColoredTriangle
@@ -25,16 +25,6 @@ struct ColoredTriangle
     glm::vec3 VertexLocations[3]{};
     glm::vec3 VertexColors[3]{};
     glm::vec3 VertexNormals[3]{};
-
-    void RandomizeColors()
-    {
-        for ( glm::vec3& VertexColor : VertexColors)
-        {
-            VertexColor.r = (rand() % 1000) / 1000.0f;
-            VertexColor.g = (rand() % 1000) / 1000.0f;
-            VertexColor.b = (rand() % 1000) / 1000.0f;
-        }
-    }
 };
 
 /* ColoredTriangleList
@@ -42,11 +32,11 @@ struct ColoredTriangle
  */
 struct ColoredTriangleList
 {
-    ColoredTriangleList(int MaxTris)
+    explicit ColoredTriangleList(int MaxTris)
     {
         NumTriangles = 0;
         MaxTriangles = MaxTris;
-        TriData = (ColoredTriangle*) malloc(MaxTriangles * sizeof(ColoredTriangle));
+        TriData = static_cast<ColoredTriangle*>(malloc(MaxTriangles * sizeof(ColoredTriangle)));
     }
 
     ~ColoredTriangleList()
@@ -61,35 +51,22 @@ struct ColoredTriangleList
     {
         TriData[NumTriangles++] = Triangle;
 
-        for(int i = 0; i < 3; i++)
+        for(const glm::vec3& vert : Triangle.VertexLocations)
         {
-            glm::vec3& vert = Triangle.VertexLocations[i];
-            //track min and max values for vertices in all three dimensions (finding bounding box)
-            {
-                if(vert.x > BoundingBoxMax.x) {
-                    BoundingBoxMax.x = vert.x;
-                } else if (vert.x < BoundingBoxMin.x) {
-                    BoundingBoxMin.x = vert.x;
-                }
-                if(vert.y > BoundingBoxMax.y) {
-                    BoundingBoxMax.y = vert.y;
-                } else if (vert.y < BoundingBoxMin.y) {
-                    BoundingBoxMin.y = vert.y;
-                }
-                if(vert.z > BoundingBoxMax.z) {
-                    BoundingBoxMax.z = vert.z;
-                } else if (vert.z < BoundingBoxMin.z) {
-                    BoundingBoxMin.z = vert.z;
-                }
-
-                /*
-                BoundingBoxMin.x = vert.x < BoundingBoxMin.x ? vert.x : BoundingBoxMin.x;
-                BoundingBoxMax.x = vert.x > BoundingBoxMax.x ? vert.x : BoundingBoxMax.x;
-                BoundingBoxMin.y = vert.y < BoundingBoxMin.y ? vert.y : BoundingBoxMin.y;
-                BoundingBoxMax.y = vert.y > BoundingBoxMax.y ? vert.y : BoundingBoxMax.y;
-                BoundingBoxMin.z = vert.z < BoundingBoxMin.z ? vert.z : BoundingBoxMin.z;
-                BoundingBoxMax.z = vert.z > BoundingBoxMax.z ? vert.z : BoundingBoxMax.z;
-                */
+            if(vert.x > BoundingBoxMax.x) {
+                BoundingBoxMax.x = vert.x;
+            } else if (vert.x < BoundingBoxMin.x) {
+                BoundingBoxMin.x = vert.x;
+            }
+            if(vert.y > BoundingBoxMax.y) {
+                BoundingBoxMax.y = vert.y;
+            } else if (vert.y < BoundingBoxMin.y) {
+                BoundingBoxMin.y = vert.y;
+            }
+            if(vert.z > BoundingBoxMax.z) {
+                BoundingBoxMax.z = vert.z;
+            } else if (vert.z < BoundingBoxMin.z) {
+                BoundingBoxMin.z = vert.z;
             }
         }
     }
@@ -103,4 +80,3 @@ struct ColoredTriangleList
     glm::vec3 BoundingBoxMax = glm::vec3(FLOAT_MIN);
     ColoredTriangle* TriData = nullptr;
 };
-#endif //COLOREDTRIANGLE_H

@@ -2,26 +2,26 @@
 // Created by Ryanc on 11/26/2024.
 //
 
-#include "RenderableBase.h"
-#include "glad/glad.h"
+#include "../../include/rendering/RenderableBase.h"
+#include "../../include/glad/glad.h"
 
 namespace Rendering
 {
-    RenderableBase::RenderableBase(std::string& GivenName)
+    RenderableBase::RenderableBase(const std::string& GivenName)
     {
         Name = GivenName;
 
+        VAO = 1>>31;
         VBO = 1>>31;
         EBO = 1>>31;
     }
 
-
-    void RenderableBase::SetName(std::string &NewName)
+    void RenderableBase::SetName(const std::string &NewName)
     {
         Name = NewName;
     }
 
-    void RenderableBase::SetProgram(std::shared_ptr<Rendering::ShaderProgram>& NewProgram)
+    void RenderableBase::SetProgram(const std::shared_ptr<Rendering::ShaderProgram>& NewProgram)
     {
         ShaderProgram = NewProgram;
     }
@@ -34,7 +34,5 @@ namespace Rendering
         //create vbo for vertex properties
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-
     }
 }
