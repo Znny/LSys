@@ -26,7 +26,7 @@ void Turtle::MoveForward(float Distance)
     }
 }
 
-ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
+void Turtle::DrawSystem(LSystem& System, ColoredTriangleList** List)
 {
     //set starting HSV color, at set to current color
     glm::vec3 CurrentHSVColor = {26.3, 0.7, .315};
@@ -44,13 +44,21 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
     //exit early if the source string is nullptr for some reason
     if (SourceString == nullptr)
     {
-        return nullptr;
+        return;
     }
     const size_t StrLength = strlen(SourceString);
 
     //specify max number of tris (10mil) and create list to store them all
     constexpr unsigned int MaxTriangles = 10000000;
-    auto* Triangles = new ColoredTriangleList(MaxTriangles);
+    //auto* Triangles = new ColoredTriangleList(MaxTriangles);
+    if(*List == nullptr)
+    {
+        *List = new ColoredTriangleList(MaxTriangles);
+    }
+    else {
+        (*List)->Clear();
+    }
+    auto* Triangles = *List;
 
     LogVerbose("Turtle Processing string of length %d\n", StrLength);
 
@@ -133,12 +141,10 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             break;
 
             case 'G':
-                LogInfo("Turtle Interpreted G\n");
                 //implement Move forward and draw a line. do not record a vertex, pg 122
             break;
 
             case '.':
-                LogInfo("Turtle Interpreted .\n");
                 //todo: implement record a vertex in the current polygon (pg 122, 127)
             break;
 
@@ -149,30 +155,24 @@ ColoredTriangleList* Turtle::DrawSystem(LSystem& System)
             break;
 
             case '~':
-                LogInfo("Turtle Interpreted ~\n");
                 //todo: implement incorporation of predefined surface
             break;
 
             case '!':
-                LogInfo("Turtle Interpreted !\n");
                 //todo: implement decrement diamater of segments
             break;
 
             case '`':
-                LogInfo("Turtle Interpreted `\n");
                 //todo: implement increment current color index
             break;
 
             case '%':
-                LogInfo("Turtle Interpreted %\n");
                 //todo: implement cut off remainder of branch
             break;
             default:
             break;
         }
     }
-
-    return Triangles;
 }
 
 void Turtle::DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles) const {

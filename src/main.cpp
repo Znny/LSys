@@ -304,7 +304,7 @@ void UpdateVertexBuffers()
     ActiveSystem.Rewrite();
 
     //use our active turtle to draw the system and return a list of triangles
-    TriangleList = ActiveTurtle.DrawSystem(ActiveSystem);
+    ActiveTurtle.DrawSystem(ActiveSystem, &TriangleList);
 
     //if no triangles are present, return early
     if (TriangleList == nullptr)
@@ -532,6 +532,10 @@ void ProcessInput()
 void Cleanup()
 {
     LogInfo("cleaning up...\n");
+
+    if(TriangleList != nullptr) {
+        free(TriangleList);
+    }
 
     //cleanup imgui
     UIManager::Shutdown();

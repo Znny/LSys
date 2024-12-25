@@ -44,9 +44,10 @@ public:
 
     /** Turtle::DrawSystem
      * @param System - the system to draw
+     * @param List - the list to draw to
      * @return A list of ColoredTriangles
      */
-    ColoredTriangleList* DrawSystem(LSystem& System);
+    void DrawSystem(LSystem& System, ColoredTriangleList** List);
     void DrawConeSegment(float r1, float r2, glm::vec3& color1, glm::vec3& color2, float length, ColoredTriangleList* triangles) const;
 
     //whether we are currently defining a polygon or not

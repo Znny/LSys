@@ -70,6 +70,10 @@ struct ColoredTriangleList
             }
         }
     }
+    void Clear()
+    {
+        NumTriangles = 0;
+    }
 
     long long int NumTriangles = 0;
     long long int MaxTriangles = 0;
