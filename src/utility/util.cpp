@@ -6,6 +6,7 @@
 
 #include <cmath> // For fmod function
 #include <algorithm>
+#include <vector>
 
 glm::vec3 HSVtoRGB(const glm::vec3& hsv) {
     glm::vec3 rgb;
@@ -85,4 +86,47 @@ glm::vec3 RGBtoHSV(const glm::vec3& rgb) {
     hsv.b = max;
 
     return hsv;
+}
+
+// Function to generate a sphere
+std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned int LongitudeSegments, unsigned int LatitudeSegments) {
+    std::vector<glm::vec3> vertices;
+
+    for (unsigned int lat = 0; lat <= LatitudeSegments; ++lat) {
+        float theta = glm::radians(180.0f * static_cast<float>(lat) / LatitudeSegments); // Latitude angle
+        float sinTheta = std::sin(theta);
+        float cosTheta = std::cos(theta);
+
+        for (unsigned int lon = 0; lon <= LongitudeSegments; ++lon) {
+            float phi = glm::radians(360.0f * static_cast<float>(lon) / LongitudeSegments); // Longitude angle
+            float sinPhi = std::sin(phi);
+            float cosPhi = std::cos(phi);
+
+            // Calculate vertex position
+            glm::vec3 vertex = Center + Radius * glm::vec3(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
+            vertices.push_back(vertex);
+        }
+    }
+
+    std::vector<glm::vec3> triangles;
+
+    // Create triangles from the sphere vertices
+    for (unsigned int lat = 0; lat < LatitudeSegments; ++lat) {
+        for (unsigned int lon = 0; lon < LongitudeSegments; ++lon) {
+            unsigned int first = lat * (LongitudeSegments + 1) + lon;
+            unsigned int second = first + LongitudeSegments + 1;
+
+            // First triangle of the quad
+            triangles.push_back(vertices[first]);
+            triangles.push_back(vertices[second]);
+            triangles.push_back(vertices[first + 1]);
+
+            // Second triangle of the quad
+            triangles.push_back(vertices[second]);
+            triangles.push_back(vertices[second + 1]);
+            triangles.push_back(vertices[first + 1]);
+        }
+    }
+
+    return triangles;
 }

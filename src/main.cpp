@@ -16,6 +16,7 @@
 #include "rendering/ShaderProgram.h"
 #include "rendering/ShaderObject.h"
 #include "rendering/ShaderManager.h"
+#include "utility/util.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -296,6 +297,56 @@ bool InitLSystems()
     return true;
 }
 
+bool InitLightData()
+{
+    {
+        //create vertax array object for Light rendering
+        glGenVertexArrays(1, &LightVAO);
+        glBindVertexArray(LightVAO);
+
+        //create vbo for Light vertex positions
+        glGenBuffers(1, &LightVBO_Positions);
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
+        //specify vertex packing for locations, and enable the attribute array
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
+
+        //create vbo for Light vertex colors
+        glGenBuffers(1, &LightVBO_Colors);
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
+        //specify vertex packing for colors, and enable the attribute array
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+    }
+
+    UpdateLightData();
+
+    return true;
+}
+
+bool InitInput()
+{
+    //set keyboard callback
+    glfwSetKeyCallback(MainWindow, KeyboardEventCallback);
+
+    //set mouse button event callback
+    glfwSetMouseButtonCallback(MainWindow, MouseButtonEventCallback);
+
+    //set mouse movement callback
+    glfwSetCursorPosCallback(MainWindow, MouseMoveEventCallback);
+
+    //set mouse scroll event callback
+    glfwSetScrollCallback(MainWindow, MouseScrollEventCallback);
+
+    //set resize callback
+    glfwSetFramebufferSizeCallback(MainWindow, WindowResizeEventCallback);
+
+    return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// update functions
 void UpdateVertexBuffers()
 {
     //ActiveSystem.SetIterations(3);
@@ -383,26 +434,38 @@ void UpdateVertexBuffers()
     free(VertNormals);
 }
 
-
-bool InitInput()
+void UpdateLightData()
 {
-    //set keyboard callback
-    glfwSetKeyCallback(MainWindow, KeyboardEventCallback);
+    std::vector<glm::vec3> LightVerts = GenerateSphere(LightLocation, LightRadius, VerticalSections, HorizontalSections);
+    LightVertCount = static_cast<int>(LightVerts.size());
 
-    //set mouse button event callback
-    glfwSetMouseButtonCallback(MainWindow, MouseButtonEventCallback);
+    LogInfo("LightVertCount = %d", LightVertCount);
+    auto* VertLocations = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
+    auto* VertColors = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
 
-    //set mouse movement callback
-    glfwSetCursorPosCallback(MainWindow, MouseMoveEventCallback);
+    for(int i = 0; i < LightVertCount; i++)
+    {
+        VertLocations[i] = LightVerts[i];
+        VertColors[i] = LightColor;
+    }
 
-    //set mouse scroll event callback
-    glfwSetScrollCallback(MainWindow, MouseScrollEventCallback);
+    {
+        glBindVertexArray(LightVAO);
 
-    //set resize callback
-    glfwSetFramebufferSizeCallback(MainWindow, WindowResizeEventCallback);
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
+                     reinterpret_cast<GLfloat*>(VertLocations), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
 
-    return true;
+        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
+                     reinterpret_cast<GLfloat*>(VertColors), GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+    }
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// main loop
@@ -785,106 +848,5 @@ void UpdateTiming(GLFWwindow* Window)
     FrameCount++;
 }
 
-bool InitLightData()
-{
-    {
-        //create vertax array object for Light rendering
-        glGenVertexArrays(1, &LightVAO);
-        glBindVertexArray(LightVAO);
 
-        //create vbo for Light vertex positions
-        glGenBuffers(1, &LightVBO_Positions);
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
-        //specify vertex packing for locations, and enable the attribute array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
-
-        //create vbo for Light vertex colors
-        glGenBuffers(1, &LightVBO_Colors);
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
-        //specify vertex packing for colors, and enable the attribute array
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
-    }
-
-    UpdateLightData();
-
-    return true;
-}
-
-
-// Function to generate a sphere
-std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned int LongitudeSegments, unsigned int LatitudeSegments) {
-    std::vector<glm::vec3> vertices;
-
-    for (unsigned int lat = 0; lat <= LatitudeSegments; ++lat) {
-        float theta = glm::radians(180.0f * static_cast<float>(lat) / LatitudeSegments); // Latitude angle
-        float sinTheta = std::sin(theta);
-        float cosTheta = std::cos(theta);
-
-        for (unsigned int lon = 0; lon <= LongitudeSegments; ++lon) {
-            float phi = glm::radians(360.0f * static_cast<float>(lon) / LongitudeSegments); // Longitude angle
-            float sinPhi = std::sin(phi);
-            float cosPhi = std::cos(phi);
-
-            // Calculate vertex position
-            glm::vec3 vertex = Center + Radius * glm::vec3(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
-            vertices.push_back(vertex);
-        }
-    }
-
-    std::vector<glm::vec3> triangles;
-
-    // Create triangles from the sphere vertices
-    for (unsigned int lat = 0; lat < LatitudeSegments; ++lat) {
-        for (unsigned int lon = 0; lon < LongitudeSegments; ++lon) {
-            unsigned int first = lat * (LongitudeSegments + 1) + lon;
-            unsigned int second = first + LongitudeSegments + 1;
-
-            // First triangle of the quad
-            triangles.push_back(vertices[first]);
-            triangles.push_back(vertices[second]);
-            triangles.push_back(vertices[first + 1]);
-
-            // Second triangle of the quad
-            triangles.push_back(vertices[second]);
-            triangles.push_back(vertices[second + 1]);
-            triangles.push_back(vertices[first + 1]);
-        }
-    }
-
-    return triangles;
-}
-
-void UpdateLightData()
-{
-    std::vector<glm::vec3> LightVerts = GenerateSphere(LightLocation, LightRadius, VerticalSections, HorizontalSections);
-    LightVertCount = static_cast<int>(LightVerts.size());
-
-    LogInfo("LightVertCount = %d", LightVertCount);
-    auto* VertLocations = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
-    auto* VertColors = static_cast<glm::vec3*>(malloc(LightVertCount * sizeof(glm::vec3)));
-
-    for(int i = 0; i < LightVertCount; i++)
-    {
-        VertLocations[i] = LightVerts[i];
-        VertColors[i] = LightColor;
-    }
-
-    {
-        glBindVertexArray(LightVAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Positions);
-        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
-                     reinterpret_cast<GLfloat*>(VertLocations), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, LightVBO_Colors);
-        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(LightVertCount * sizeof(glm::vec3)),
-                     reinterpret_cast<GLfloat*>(VertColors), GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(1);
-    }
-}
 

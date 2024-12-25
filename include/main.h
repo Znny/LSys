@@ -3,8 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// header file includes
-
-///glm
+//glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,6 +17,10 @@
 #include "UI/UIManager.h"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//print out program usage
+void Usage();
+//process program arguments and set variables for initialization
+void ProcessArguments(int argc, char** argv);
 
 //initialize the program, calling sub-init functions
 bool Init(int argc, char** argv);
@@ -25,15 +28,9 @@ bool Init(int argc, char** argv);
 //sub-initialization functions
 bool InitGraphics();
 bool InitLightData();
-
 bool InitInput();
 bool InitLSystems();
 
-//print out program usage
-void Usage();
-
-//process program arguments and set variables for initialization
-void ProcessArguments(int argc, char** argv);
 
 //run the program, which loops updating time, ticking, rendering, and processing input
 void Run();
@@ -41,6 +38,7 @@ void Run();
 void UpdateTiming(GLFWwindow* window);
 void UpdateVertexBuffers();
 void UpdateLightData();
+
 void Tick(double DeltaTime);
 void Render(double DeltaTime);
 
@@ -49,15 +47,12 @@ void ProcessInput();
 
 //keyboard event callback function
 void KeyboardEventCallback(GLFWwindow* Window, int KeyCode, int ScanCode, int Action, int Modifiers);
-
 //mouse movement event callback function
 void MouseMoveEventCallback(GLFWwindow* Window, double xPos, double yPos);
 void MouseButtonEventCallback(GLFWwindow* Window, int button, int action, int mods);
 void MouseScrollEventCallback(GLFWwindow* Window, double xOffset, double yOffset);
-
 //window resize event callback function
 void WindowResizeEventCallback(GLFWwindow* Window, int NewWidth, int NewHeight);
-
 //error callback function
 void ErrorCallback(int error, const char* description);
 
