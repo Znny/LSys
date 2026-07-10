@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "glm.hpp"
@@ -16,3 +17,5 @@ glm::vec3 RGBtoHSV(const glm::vec3& rgb);
 
 //
 std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned int LongitudeSegments, unsigned int LatitudeSegments);
+
+std::string GetExecutableDir();

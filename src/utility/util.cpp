@@ -6,7 +6,17 @@
 
 #include <cmath> // For fmod function
 #include <algorithm>
+#include <cstring>
 #include <vector>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <shlwapi.h>
+    #pragma comment(lib, "shlwapi.lib")
+#else
+    #include <unistd.h>
+    #include <linux/limits.h>   // PATH_MAX
+#endif
 
 glm::vec3 HSVtoRGB(const glm::vec3& hsv) {
     glm::vec3 rgb;
@@ -129,4 +139,36 @@ std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned i
     }
 
     return triangles;
+}
+
+std::string GetExecutableDir()
+{
+    char pathBuffer[PATH_MAX+1] = {0};
+#ifdef _WIN32
+    //get executable file path
+    GetModuleFileNameA(NULL, pathBuffer, MAX_PATH);
+
+    //remove filename from path
+    PathRemoveFileSpecA(pathBuffer);
+#else
+    const char* exePathFilename = "/proc/self/exe";
+    size_t pathLength = PATH_MAX;
+
+    pathLength = readlink(exePathFilename, pathBuffer, pathLength);
+    if (pathLength == -1)
+    {
+        return "BAD_PATH";
+    }
+
+    //remove filename from path
+    char* const lastSlash = std::strrchr(pathBuffer, '/');
+    if(lastSlash != nullptr)
+    {
+        *lastSlash = 0;
+    }
+#endif
+
+    std::string executablePath = pathBuffer;
+
+    return executablePath;
 }

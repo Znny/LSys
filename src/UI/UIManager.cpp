@@ -9,6 +9,7 @@
 #include "../lib/imgui/imgui.h"
 #include "../lib/imgui/backends/imgui_impl_glfw.h"
 #include "../lib/imgui/backends/imgui_impl_opengl3.h"
+#include "utility/util.h"
 
 void UIManager::Init(GLFWwindow* window)
 {
@@ -179,7 +180,8 @@ void UIManager::UpdateScale(float NewScale)
 
     // Optional: Load a scaled font
     //io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF("../resource/font/Roboto-Medium.ttf", 16.0f * NewScale); // Adjust base font size
+    std::string fontPath = GetExecutableDir() + "/resource/font/Roboto-Medium.ttf";
+    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0f * NewScale); // Adjust base font size
     ImGui_ImplOpenGL3_CreateFontsTexture(); // Rebuild font texture
 }
 

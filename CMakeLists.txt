@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.20)
 project(LSYS)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 include_directories(include/glad)
@@ -47,8 +47,19 @@ add_executable(
         include/utility/util.h
 )
 
-#set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 set(GLFW_LIB_DIR "${CMAKE_SOURCE_DIR}/lib/lib-mingw-w64")
 
-target_link_libraries(LSYS PRIVATE "${GLFW_LIB_DIR}/libglfw3.a" -static)
+if(WIN32)
+    target_link_libraries(LSYS PRIVATE
+            "${CMAKE_SOURCE_DIR}/lib/lib-mingw-w64/libglfw3.a"
+            -static)
+else()
+    find_package(glfw3 REQUIRED)
+    target_link_libraries(LSYS PRIVATE glfw GL dl)
+endif()
+
+add_custom_command(TARGET LSYS POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resource
+        $<TARGET_FILE_DIR:LSYS>/resource)

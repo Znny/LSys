@@ -168,8 +168,8 @@ bool InitGLFW()
     glfwSetErrorCallback(ErrorCallback);
 
     //try to set context version
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     const char* Title = "GLBP";
     //attempt to create the window
@@ -219,8 +219,15 @@ bool InitGraphics()
     shaderManager = Rendering::ShaderManager::Get();
 
     //create shader objects
-    PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", "../resource/shader/passthrough.vs", "../resource/shader/passthrough.fs");
-    HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", "../resource/shader/HCLight_passthrough.vs", "../resource/shader/HCLight_passthrough.fs");
+
+    const std::string exePath = GetExecutableDir();
+    const std::string passthroughVSFilename = exePath + "/resource/shader/passthrough.vs";
+    const std::string passthroughFSFilename = exePath +"/resource/shader/passthrough.fs";
+    PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", passthroughVSFilename, passthroughFSFilename);
+
+    const std::string HCLightVSFilename = exePath + "/resource/shader/HCLight_passthrough.vs";
+    const std::string HCLightFSFilename = exePath + "/resource/shader/HCLight_passthrough.fs";
+    HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", HCLightVSFilename, HCLightFSFilename);
 
     //initialize world axes
     InitWorldAxes();

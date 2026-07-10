@@ -23,7 +23,7 @@ namespace Rendering
 
     void RenderableBase::SetProgram(const std::shared_ptr<Rendering::ShaderProgram>& NewProgram)
     {
-        ShaderProgram = NewProgram;
+        shaderProgram = NewProgram;
     }
 
     void RenderableBase::Init()

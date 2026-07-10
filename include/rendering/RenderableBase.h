@@ -32,7 +32,7 @@ namespace Rendering
     private:
         std::string Name;
         Transform transform;
-        std::shared_ptr<ShaderProgram> ShaderProgram;
+        std::shared_ptr<ShaderProgram> shaderProgram;
         GLuint VAO; //Vertex array object
         GLuint VBO; //Vertex buffer object
         GLuint EBO; //Element buffer object
