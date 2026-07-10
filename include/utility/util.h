@@ -6,7 +6,6 @@
 
 #include <string>
 #include <vector>
-
 #include "glm.hpp"
 
 //take an HSV-based glm::vec3 and return an RGB based glm::vec3

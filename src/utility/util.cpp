@@ -11,8 +11,6 @@
 
 #ifdef _WIN32
     #include <windows.h>
-    #include <shlwapi.h>
-    #pragma comment(lib, "shlwapi.lib")
 #else
     #include <unistd.h>
     #include <linux/limits.h>   // PATH_MAX
@@ -144,30 +142,33 @@ std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned i
 std::string GetExecutableDir()
 {
     char pathBuffer[PATH_MAX+1] = {0};
+    ssize_t pathLength = PATH_MAX;
+
 #ifdef _WIN32
+    constexpr ssize_t ErrVal = 0;
+    constexpr char slashChar = '\\';
     //get executable file path
-    GetModuleFileNameA(NULL, pathBuffer, MAX_PATH);
+    pathLength = GetModuleFileNameA(NULL, pathBuffer, MAX_PATH);
 
-    //remove filename from path
-    PathRemoveFileSpecA(pathBuffer);
 #else
+    constexpr ssize_t ErrVal = -1;
+    constexpr char slashChar = '/';
     const char* exePathFilename = "/proc/self/exe";
-    size_t pathLength = PATH_MAX;
-
     pathLength = readlink(exePathFilename, pathBuffer, pathLength);
-    if (pathLength == -1)
+
+#endif
+    if (pathLength == ErrVal || pathLength >= PATH_MAX)
     {
-        return "BAD_PATH";
+        fprintf(stderr, "ERROR: Could not read execution path, exiting.\n");
+        exit(EXIT_FAILURE);
     }
 
     //remove filename from path
-    char* const lastSlash = std::strrchr(pathBuffer, '/');
+    char* const lastSlash = std::strrchr(pathBuffer, slashChar);
     if(lastSlash != nullptr)
     {
         *lastSlash = 0;
     }
-#endif
-
     std::string executablePath = pathBuffer;
 
     return executablePath;
