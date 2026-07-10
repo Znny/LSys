@@ -9,13 +9,6 @@
 #include <cstring>
 #include <vector>
 
-#ifdef _WIN32
-    #include <windows.h>
-#else
-    #include <unistd.h>
-    #include <linux/limits.h>   // PATH_MAX
-#endif
-
 glm::vec3 HSVtoRGB(const glm::vec3& hsv) {
     glm::vec3 rgb;
     auto h = static_cast<float>(fmod(hsv.r, 360.0f)); // Ensure hue is within [0, 360)
@@ -139,37 +132,3 @@ std::vector<glm::vec3> GenerateSphere(glm::vec3 Center, float Radius, unsigned i
     return triangles;
 }
 
-std::string GetExecutableDir()
-{
-    char pathBuffer[PATH_MAX+1] = {0};
-    ssize_t pathLength = PATH_MAX;
-
-#ifdef _WIN32
-    constexpr ssize_t ErrVal = 0;
-    constexpr char slashChar = '\\';
-    //get executable file path
-    pathLength = GetModuleFileNameA(NULL, pathBuffer, MAX_PATH);
-
-#else
-    constexpr ssize_t ErrVal = -1;
-    constexpr char slashChar = '/';
-    const char* exePathFilename = "/proc/self/exe";
-    pathLength = readlink(exePathFilename, pathBuffer, pathLength);
-
-#endif
-    if (pathLength == ErrVal || pathLength >= PATH_MAX)
-    {
-        fprintf(stderr, "ERROR: Could not read execution path, exiting.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    //remove filename from path
-    char* const lastSlash = std::strrchr(pathBuffer, slashChar);
-    if(lastSlash != nullptr)
-    {
-        *lastSlash = 0;
-    }
-    std::string executablePath = pathBuffer;
-
-    return executablePath;
-}
