@@ -4,6 +4,8 @@
 #include "glad/glad.h"
 #include <iostream>
 
+#include "utility/util.h"
+
 // Initialize the static singleton instance
 Rendering::ShaderManager* Rendering::ShaderManager::sShaderManager = nullptr;
 
@@ -57,9 +59,10 @@ namespace Rendering {
             return ShaderPrograms[ProgramName];
         }
 
+        std::string ExecutablePath = GetExecutableDir();
         // Retrieve or create the vertex and fragment shaders
-        auto vertexShader = LoadShader(VertexShaderName, GL_VERTEX_SHADER);
-        auto fragmentShader = LoadShader(FragmentShaderName, GL_FRAGMENT_SHADER);
+        auto vertexShader = LoadShader(ExecutablePath + VertexShaderName, GL_VERTEX_SHADER);
+        auto fragmentShader = LoadShader(ExecutablePath + FragmentShaderName, GL_FRAGMENT_SHADER);
 
         if (!vertexShader || !fragmentShader)
         {

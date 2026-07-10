@@ -219,14 +219,12 @@ bool InitGraphics()
     shaderManager = Rendering::ShaderManager::Get();
 
     //create shader objects
-
-    const std::string exePath = GetExecutableDir();
-    const std::string passthroughVSFilename = exePath + "/resource/shader/passthrough.vs";
-    const std::string passthroughFSFilename = exePath +"/resource/shader/passthrough.fs";
+    const std::string passthroughVSFilename = "/resource/shader/passthrough.vs";
+    const std::string passthroughFSFilename = "/resource/shader/passthrough.fs";
     PassthroughShaderProgram = shaderManager->LoadShaderProgram("passthrough", passthroughVSFilename, passthroughFSFilename);
 
-    const std::string HCLightVSFilename = exePath + "/resource/shader/HCLight_passthrough.vs";
-    const std::string HCLightFSFilename = exePath + "/resource/shader/HCLight_passthrough.fs";
+    const std::string HCLightVSFilename = "/resource/shader/HCLight_passthrough.vs";
+    const std::string HCLightFSFilename = "/resource/shader/HCLight_passthrough.fs";
     HardCodedLightShaderProgram = shaderManager->LoadShaderProgram("HardCodedLight", HCLightVSFilename, HCLightFSFilename);
 
     //initialize world axes
