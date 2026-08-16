@@ -16,7 +16,8 @@ public:
     void SetLightingVariables(glm::vec3* LightLocation,
                               glm::vec3* LightColor,
                               glm::vec3* AmbientColor,
-                              float* AmbientStrength);
+                              float* AmbientStrength,
+                              bool* bLitMode);
 
     static void BeginFrame();
 
@@ -44,6 +45,7 @@ private:
         glm::vec3* LightColor = nullptr;
         glm::vec3* AmbientColor = nullptr;
         float* AmbientStrength = nullptr;
+        bool* bLitMode = nullptr;
     } LightingInfo;
 };
 

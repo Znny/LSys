@@ -19,6 +19,7 @@ namespace Rendering
         friend class ShaderProgram;
     public:
         explicit ShaderObject(const std::string& filename, GLenum shaderType);
+        ~ShaderObject();
 
         bool Load(const std::string& filename, GLenum shaderType);
 

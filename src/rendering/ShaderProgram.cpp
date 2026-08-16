@@ -3,7 +3,7 @@
 //
 
 #include "glad/glad.h"
-#include "utility/logging.hpp"
+#include "myc/logging/logging.h"
 #include "rendering/ShaderObject.h"
 #include "rendering/ShaderProgram.h"
 

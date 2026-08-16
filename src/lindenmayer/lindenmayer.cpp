@@ -5,7 +5,7 @@
 #include "lindenmayer/lindenmayer.h"
 #include <cstring>
 #include <cstdio>
-#include "utility/logging.hpp"
+#include "myc/logging/logging.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 LS_RewritingRule::LS_RewritingRule(const char c, const char *R)

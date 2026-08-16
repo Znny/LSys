@@ -33,7 +33,6 @@ add_executable(
         src/main.cpp
         src/rendering/ShaderObject.cpp
         src/rendering/ShaderProgram.cpp
-        src/utility/logging.cpp
         src/lindenmayer/lindenmayer.cpp
         src/utility/Transform.cpp
         src/utility/Turtle.cpp
@@ -58,7 +57,7 @@ set(GLFW_LIB_DIR "${CMAKE_SOURCE_DIR}/lib/lib-mingw-w64")
 
 # Link required myc modules
 
-target_link_libraries(LSYS PRIVATE myc_paths)
+target_link_libraries(LSYS PRIVATE myc_paths myc_logging)
 
 # Link GLFW3
 if(WIN32)

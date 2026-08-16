@@ -168,5 +168,8 @@ constexpr int HorizontalSections = 5;
 constexpr float LightRadius = 0.05f;
 int LightVertCount = 0;
 
+//whether the L-system model is rendered with lighting (HardCodedLightShaderProgram) or flat-shaded (PassthroughShaderProgram)
+bool bLitMode = true;
+
 //UI manager
 UIManager UI;

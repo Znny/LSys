@@ -8,7 +8,7 @@
 #include <cstring>
 
 //utility
-#include "utility/logging.hpp"
+#include "myc/logging/logging.h"
 #include "utility/util.h"
 
 //imgui
@@ -34,9 +34,6 @@ int main(int argc, char** argv)
 {
     //this is required to print out properly on windows
     setbuf(stdout, nullptr);
-
-    //required for color terminal output on windows
-    InitializeLogColors();
 
     //initialize the sim
     if (Init(argc, argv))
@@ -260,7 +257,7 @@ bool InitGraphics()
     UI.SetUpdateCallback(UpdateVertexBuffers);
 
     //setup UI lighting variables and callback
-    UI.SetLightingVariables(&LightLocation, &LightColor, &AmbientColor, &AmbientStrength);
+    UI.SetLightingVariables(&LightLocation, &LightColor, &AmbientColor, &AmbientStrength, &bLitMode);
     UI.SetLightUpdateCallback(UpdateLightData);
 
     return true;
@@ -574,15 +571,19 @@ void Render(double DeltaTime)
         glBindVertexArray(LightVAO);
         glDrawArrays(GL_TRIANGLES, 0, LightVertCount);
 
-        //enable the passthrough shader program
+        //render the L-system model, lit or flat-shaded depending on bLitMode
         glBindVertexArray(ColoredVertexArrayObject);
-        glUseProgram(HardCodedLightShaderProgram->GetProgramID());
-        glUniformMatrix4fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
+        const std::shared_ptr<Rendering::ShaderProgram>& ActiveModelShaderProgram = bLitMode ? HardCodedLightShaderProgram : PassthroughShaderProgram;
+        glUseProgram(ActiveModelShaderProgram->GetProgramID());
+        glUniformMatrix4fv(glGetUniformLocation(ActiveModelShaderProgram->GetProgramID(), "ViewProjectionMatrix"), 1, GL_FALSE,
                            reinterpret_cast<GLfloat*>(&ActiveViewProjectionMatrix));
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightPosition"), 1, reinterpret_cast<GLfloat*>(&LightLocation));
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "lightColor"), 1, reinterpret_cast<GLfloat*>(&LightColor));
-        glUniform3fv(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientColor"), 1, reinterpret_cast<GLfloat*>(&AmbientColor));
-        glUniform1f(glGetUniformLocation(HardCodedLightShaderProgram->GetProgramID(), "ambientStrength"), AmbientStrength);
+        if(bLitMode)
+        {
+            glUniform3fv(glGetUniformLocation(ActiveModelShaderProgram->GetProgramID(), "lightPosition"), 1, reinterpret_cast<GLfloat*>(&LightLocation));
+            glUniform3fv(glGetUniformLocation(ActiveModelShaderProgram->GetProgramID(), "lightColor"), 1, reinterpret_cast<GLfloat*>(&LightColor));
+            glUniform3fv(glGetUniformLocation(ActiveModelShaderProgram->GetProgramID(), "ambientColor"), 1, reinterpret_cast<GLfloat*>(&AmbientColor));
+            glUniform1f(glGetUniformLocation(ActiveModelShaderProgram->GetProgramID(), "ambientStrength"), AmbientStrength);
+        }
 
         //bind and draw ColoredVertexArrayObject
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(TriangleList->NumTriangles * 3));

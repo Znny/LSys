@@ -249,17 +249,23 @@ void UIManager::SetLightingVariables(
         glm::vec3* LightLocation,
         glm::vec3* LightColor,
         glm::vec3* AmbientColor,
-        float* AmbientStrength)
+        float* AmbientStrength,
+        bool* bLitMode)
 {
     LightingInfo.LightLocation = LightLocation;
     LightingInfo.LightColor = LightColor;
     LightingInfo.AmbientColor = AmbientColor;
     LightingInfo.AmbientStrength = AmbientStrength;
+    LightingInfo.bLitMode = bLitMode;
 }
 
 void UIManager::DrawLightMenu() const
 {
     ImGui::Begin("Lighting");
+
+    ImGui::Checkbox("Lit", LightingInfo.bLitMode);
+
+    ImGui::BeginDisabled(!*LightingInfo.bLitMode);
 
     if(ImGui::SliderFloat3("Light Location", reinterpret_cast<float*>(LightingInfo.LightLocation), -10.0, 10.0))
     {
@@ -273,6 +279,8 @@ void UIManager::DrawLightMenu() const
 
     ImGui::ColorEdit3("Ambient Color", reinterpret_cast<float*>(LightingInfo.AmbientColor));
     ImGui::SliderFloat("Ambient Strength", LightingInfo.AmbientStrength, 0.0f, 1.0f);
+
+    ImGui::EndDisabled();
 
     ImGui::End(); // End the window
 }

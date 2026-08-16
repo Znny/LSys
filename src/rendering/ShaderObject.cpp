@@ -11,7 +11,7 @@
 
 //memory management
 #include <cstring>
-#include "utility/logging.hpp"
+#include "myc/logging/logging.h"
 #include "rendering/ShaderProgram.h"
 
 namespace Rendering {
@@ -29,6 +29,15 @@ namespace Rendering {
         if (!filename.empty())
         {
             Load(filename, shaderType);
+        }
+    }
+
+    ShaderObject::~ShaderObject()
+    {
+        if(glIsShader(ObjectID))
+        {
+            glDeleteShader(ObjectID);
+            ObjectID = 0;
         }
     }
 

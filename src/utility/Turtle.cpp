@@ -4,8 +4,7 @@
 
 #include "utility/Turtle.h"
 #include <cstring>
-#include <utility/logging.hpp>
-#include <utility/logging.inl>
+#include <myc/logging/logging.h>
 #include <utility/util.h>
 
 void Turtle::Reset()
